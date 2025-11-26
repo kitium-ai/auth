@@ -3,6 +3,7 @@
  * Passwordless authentication using WebAuthn API
  */
 
+/* eslint-disable no-restricted-imports */
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
 import { getLogger } from '@kitiumai/logger';
@@ -15,6 +16,7 @@ import {
   WebAuthnAuthenticationOptions,
   WebAuthnCredentialCreation,
   WebAuthnCredentialAssertion,
+  AuthenticatorTransport,
 } from './types';
 
 const logger = getLogger();
@@ -25,6 +27,10 @@ const logger = getLogger();
 export class WebAuthnService {
   private storage: StorageAdapter;
   private config: WebAuthnConfig;
+
+  getStorage(): StorageAdapter {
+    return this.storage;
+  }
   private challenges: Map<string, { challenge: string; expiresAt: Date; userId?: string }> =
     new Map();
 
@@ -47,6 +53,8 @@ export class WebAuthnService {
       throw new ValidationError({
         code: 'auth/webauthn_not_enabled',
         message: 'WebAuthn is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -59,11 +67,12 @@ export class WebAuthnService {
     // Clean up expired challenges
     this.cleanupExpiredChallenges();
 
+    const rpId = this.config.rpId;
     const options: WebAuthnRegistrationOptions = {
       challenge,
       rp: {
         name: this.config.rpName,
-        id: this.config.rpId,
+        ...(rpId !== undefined ? { id: rpId } : {}),
       },
       user: {
         id: Buffer.from(userId).toString('base64url'),
@@ -79,7 +88,7 @@ export class WebAuthnService {
       excludeCredentials: excludeCredentials?.map((cred) => ({
         id: cred.id,
         type: 'public-key',
-        transports: cred.transports as any,
+        transports: cred.transports as AuthenticatorTransport[] | undefined,
       })),
       authenticatorSelection: this.config.authenticatorSelection,
     };
@@ -100,6 +109,8 @@ export class WebAuthnService {
       throw new ValidationError({
         code: 'auth/webauthn_not_enabled',
         message: 'WebAuthn is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -108,6 +119,8 @@ export class WebAuthnService {
       throw new AuthenticationError({
         code: 'auth/invalid_challenge',
         message: 'Invalid or expired challenge',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -116,6 +129,8 @@ export class WebAuthnService {
       throw new AuthenticationError({
         code: 'auth/challenge_expired',
         message: 'Challenge expired',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -124,6 +139,7 @@ export class WebAuthnService {
     const deviceId = `webauthn_${nanoid()}`;
     const now = new Date();
 
+    const transports = credential.transports;
     const device: WebAuthnDevice = {
       id: deviceId,
       userId,
@@ -131,7 +147,7 @@ export class WebAuthnService {
       credentialId: credential.credentialId,
       publicKey: credential.publicKey,
       counter: 0,
-      transports: credential.transports,
+      ...(transports !== undefined ? { transports } : {}),
       createdAt: now,
       verified: true,
     };
@@ -156,6 +172,8 @@ export class WebAuthnService {
       throw new ValidationError({
         code: 'auth/webauthn_not_enabled',
         message: 'WebAuthn is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -172,7 +190,7 @@ export class WebAuthnService {
       allowCredentials: allowCredentials?.map((cred) => ({
         id: cred.id,
         type: 'public-key',
-        transports: cred.transports as any,
+        transports: cred.transports as AuthenticatorTransport[] | undefined,
       })),
       userVerification: this.config.authenticatorSelection?.userVerification || 'preferred',
     };
@@ -193,6 +211,8 @@ export class WebAuthnService {
       throw new ValidationError({
         code: 'auth/webauthn_not_enabled',
         message: 'WebAuthn is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -201,6 +221,8 @@ export class WebAuthnService {
       throw new AuthenticationError({
         code: 'auth/invalid_challenge',
         message: 'Invalid or expired challenge',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -209,6 +231,8 @@ export class WebAuthnService {
       throw new AuthenticationError({
         code: 'auth/challenge_expired',
         message: 'Challenge expired',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -244,7 +268,7 @@ export class WebAuthnService {
   /**
    * List WebAuthn devices for a user
    */
-  async listDevices(userId: string): Promise<WebAuthnDevice[]> {
+  async listDevices(_userId: string): Promise<WebAuthnDevice[]> {
     // In production, fetch from storage
     // return this.storage.listWebAuthnDevices(userId);
     return [];

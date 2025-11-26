@@ -3,6 +3,7 @@
  * Device registration, trust, and device-based authentication
  */
 
+/* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
 import { getLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
@@ -58,12 +59,10 @@ export interface DeviceRegistrationRequest {
  * Device Management Service
  */
 export class DeviceManagementService {
-  private storage: StorageAdapter;
   private devices: Map<string, Device> = new Map();
 
   constructor(storage: StorageAdapter) {
-    this.storage = storage;
-    logger.debug('DeviceManagementService initialized');
+    logger.debug('DeviceManagementService initialized', { storageType: storage.constructor.name });
   }
 
   /**
@@ -84,21 +83,25 @@ export class DeviceManagementService {
       return existingDevice;
     }
 
+    const orgId = request.orgId;
+    const userAgent = request.userAgent;
+    const ipAddress = request.ipAddress;
+    const metadata = request.metadata;
     const device: Device = {
       id: deviceId,
       userId: request.userId,
-      orgId: request.orgId,
+      ...(orgId !== undefined ? { orgId } : {}),
       name: request.name,
       type: request.type || 'unknown',
       fingerprint: request.fingerprint,
-      userAgent: request.userAgent,
-      ipAddress: request.ipAddress,
+      ...(userAgent !== undefined ? { userAgent } : {}),
+      ...(ipAddress !== undefined ? { ipAddress } : {}),
       trustLevel: 'untrusted',
       trusted: false,
       verified: false,
       lastSeenAt: now,
       createdAt: now,
-      metadata: request.metadata,
+      ...(metadata !== undefined ? { metadata } : {}),
     };
 
     this.devices.set(deviceId, device);
@@ -116,6 +119,8 @@ export class DeviceManagementService {
       throw new ValidationError({
         code: 'auth/device_not_found',
         message: `Device not found: ${deviceId}`,
+        severity: 'error',
+        retryable: false,
         context: { deviceId },
       });
     }
@@ -124,6 +129,8 @@ export class DeviceManagementService {
       throw new AuthenticationError({
         code: 'auth/device_trust_unauthorized',
         message: 'Not authorized to trust this device',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -144,6 +151,8 @@ export class DeviceManagementService {
       throw new ValidationError({
         code: 'auth/device_not_found',
         message: `Device not found: ${deviceId}`,
+        severity: 'error',
+        retryable: false,
         context: { deviceId },
       });
     }
@@ -152,6 +161,8 @@ export class DeviceManagementService {
       throw new AuthenticationError({
         code: 'auth/device_verify_unauthorized',
         message: 'Not authorized to verify this device',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -172,6 +183,8 @@ export class DeviceManagementService {
       throw new ValidationError({
         code: 'auth/device_not_found',
         message: `Device not found: ${deviceId}`,
+        severity: 'error',
+        retryable: false,
         context: { deviceId },
       });
     }
@@ -180,6 +193,8 @@ export class DeviceManagementService {
       throw new AuthenticationError({
         code: 'auth/device_untrust_unauthorized',
         message: 'Not authorized to untrust this device',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -227,6 +242,8 @@ export class DeviceManagementService {
       throw new ValidationError({
         code: 'auth/device_not_found',
         message: `Device not found: ${deviceId}`,
+        severity: 'error',
+        retryable: false,
         context: { deviceId },
       });
     }
@@ -235,6 +252,8 @@ export class DeviceManagementService {
       throw new AuthenticationError({
         code: 'auth/device_delete_unauthorized',
         message: 'Not authorized to delete this device',
+        severity: 'error',
+        retryable: false,
       });
     }
 

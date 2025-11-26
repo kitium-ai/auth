@@ -3,6 +3,7 @@
  * Common OAuth providers with default configurations
  */
 
+/* eslint-disable no-restricted-imports */
 import { AuthProvider } from '../config';
 
 export interface OAuthProviderPreset {

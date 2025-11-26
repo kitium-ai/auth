@@ -78,15 +78,10 @@ class LazyLoader {
    * Internal method to load module
    */
   private async loadModule<T = unknown>(moduleName: string): Promise<T> {
-    // This is a simple implementation that returns a placeholder
-    // In a real app, you would use dynamic imports here
     logger.debug(`Loading module ${moduleName}`);
-
-    // Simulate async loading
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    // Return placeholder
-    return {} as T;
+    // Use native dynamic import so consumers receive the actual module exports.
+    const loadedModule = await import(moduleName);
+    return loadedModule as T;
   }
 }
 

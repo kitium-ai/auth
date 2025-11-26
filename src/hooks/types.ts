@@ -3,6 +3,7 @@
  * Event-driven extensibility for authentication flows
  */
 
+/* eslint-disable no-restricted-imports */
 import { UserRecord, SessionRecord, ApiKeyRecord, OrganizationRecord } from '../types';
 
 /**

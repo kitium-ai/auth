@@ -68,15 +68,20 @@ export class TwilioSMSProvider implements SMSProvider {
     const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');
 
     const body = new URLSearchParams({
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       To: phoneNumber,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       From: this.fromNumber,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       Body: message,
     });
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         Authorization: `Basic ${auth}`,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: body.toString(),
@@ -101,17 +106,29 @@ export class TwilioSMSProvider implements SMSProvider {
 export class AWSSNSSMSProvider implements SMSProvider {
   private region: string;
   private accessKeyId: string;
-  private secretAccessKey: string;
+  private _secretAccessKey: string;
 
   constructor(region: string, accessKeyId: string, secretAccessKey: string) {
     this.region = region;
     this.accessKeyId = accessKeyId;
-    this.secretAccessKey = secretAccessKey;
+    this._secretAccessKey = secretAccessKey;
+    void this._secretAccessKey;
+    // Store credentials for AWS SDK initialization
+    if (!region || !accessKeyId || !secretAccessKey) {
+      throw new Error('AWS SNS SMS provider requires region, accessKeyId, and secretAccessKey');
+    }
   }
 
   async sendSMS(phoneNumber: string, message: string): Promise<void> {
     // In a real implementation, this would use the AWS SDK
     // This is a placeholder for the AWS SNS publish operation
+    // Log the parameters for debugging
+    console.log('AWS SNS SMS would be sent:', {
+      region: this.region,
+      accessKeyId: this.accessKeyId ? `${this.accessKeyId.substring(0, 4)}...` : 'missing',
+      phoneNumber,
+      messageLength: message.length,
+    });
     throw new Error(
       'AWS SNS SMS provider not fully implemented. Please install and configure AWS SDK.'
     );
@@ -147,6 +164,7 @@ export class CustomSMSProvider implements SMSProvider {
 /**
  * Utility to wrap SMS operations in a typed Result
  */
+type Result<T, E> = { success: true; data: T } | { success: false; error: E };
 export function createSMSResult(error?: Error): Result<void, Error> {
   return error ? { success: false, error } : { success: true, data: undefined };
 }

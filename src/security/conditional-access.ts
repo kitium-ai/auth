@@ -4,7 +4,7 @@
  */
 
 import { getLogger } from '@kitiumai/logger';
-import { ValidationError, AuthorizationError } from '../errors';
+// ValidationError is available but not directly used in this file
 
 const logger = getLogger();
 
@@ -134,8 +134,25 @@ export class ConditionalAccessService {
     if (!this.policies.has(orgIdOrUserId)) {
       this.policies.set(orgIdOrUserId, []);
     }
-    this.policies.get(orgIdOrUserId)!.push(policy);
-    logger.debug('Conditional access policy added', { orgIdOrUserId, type: policy.type });
+    const policies = this.policies.get(orgIdOrUserId)!;
+    // Insert policy with priority (higher priority first)
+    if (priority !== undefined) {
+      const index = policies.findIndex(
+        (p) =>
+          (p as ConditionalAccessPolicy & { priority?: number }).priority !== undefined &&
+          (p as ConditionalAccessPolicy & { priority?: number }).priority! < priority
+      );
+      if (index === -1) {
+        policies.push({ ...policy, priority } as ConditionalAccessPolicy & { priority: number });
+      } else {
+        policies.splice(index, 0, { ...policy, priority } as ConditionalAccessPolicy & {
+          priority: number;
+        });
+      }
+    } else {
+      policies.push(policy);
+    }
+    logger.debug('Conditional access policy added', { orgIdOrUserId, type: policy.type, priority });
   }
 
   /**
@@ -181,7 +198,7 @@ export class ConditionalAccessService {
       results.push({
         policy,
         allowed: result.allowed,
-        reason: result.reason,
+        reason: result.reason ?? undefined,
       });
 
       if (!result.allowed) {
@@ -446,10 +463,13 @@ export class ConditionalAccessService {
     // Simplified implementation - would need proper CIDR library
     if (cidr.includes('/')) {
       const [rangeIp, prefix] = cidr.split('/');
+      if (!rangeIp || !prefix) {
+        return false;
+      }
       return ip.startsWith(
         rangeIp
           .split('.')
-          .slice(0, parseInt(prefix) / 8)
+          .slice(0, parseInt(prefix, 10) / 8)
           .join('.')
       );
     }

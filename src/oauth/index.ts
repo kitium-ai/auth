@@ -32,6 +32,7 @@ export interface OAuthAuthorizationRequest {
 /**
  * OAuth token response
  */
+/* eslint-disable @typescript-eslint/naming-convention */
 export interface OAuthTokenResponse {
   access_token: string;
   token_type: string;
@@ -118,9 +119,11 @@ export class OAuthManager {
   ): string {
     const params = new URLSearchParams({
       client_id: request.clientId,
+
       redirect_uri: request.redirectUri,
       scope: request.scopes.join(' '),
       state: request.state,
+
       response_type: 'code',
     });
 

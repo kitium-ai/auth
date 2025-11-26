@@ -335,26 +335,29 @@ Main authentication engine.
 ```typescript
 class AuthCore {
   constructor(config: AuthConfig, storage: StorageAdapter);
-  
+
   // User management
   registerUser(input: CreateUserInput): Promise<User>;
   updateUser(userId: string, input: UpdateUserInput): Promise<User>;
   deleteUser(userId: string): Promise<void>;
   getUser(userId: string): Promise<User | null>;
-  
+
   // Authentication
   authenticate(email: string, password: string): Promise<Session>;
   verifySession(sessionId: string): Promise<Session>;
   revokeSession(sessionId: string): Promise<void>;
-  
+
   // API Keys
   issueApiKey(userId: string, input: IssueApiKeyInput): Promise<IssueApiKeyResult>;
   verifyApiKey(apiKey: string): Promise<VerifyApiKeyResult>;
   revokeApiKey(keyId: string): Promise<void>;
-  
+
   // OAuth
   getOAuthAuthorizationUrl(providerId: string, options: OAuthOptions): Promise<string>;
-  handleOAuthCallback(providerId: string, params: OAuthCallbackParams): Promise<OAuthCallbackResult>;
+  handleOAuthCallback(
+    providerId: string,
+    params: OAuthCallbackParams
+  ): Promise<OAuthCallbackResult>;
 }
 ```
 
@@ -367,15 +370,15 @@ class TwoFactorAuthService {
   // TOTP
   enrollTOTPDevice(userId: string, name?: string): Promise<TwoFactorDevice>;
   verifyTOTPEnrollment(userId: string, deviceId: string, code: string): Promise<BackupCode[]>;
-  
+
   // SMS
   enrollSMSDevice(userId: string, phoneNumber: string, name?: string): Promise<TwoFactorDevice>;
   sendSMSCode(deviceId: string): Promise<void>;
   verifySMSCode(userId: string, deviceId: string, code: string): Promise<void>;
-  
+
   // Verification
   verifyTwoFactor(userId: string, deviceId: string, code: string): Promise<boolean>;
-  
+
   // Management
   listDevices(userId: string): Promise<TwoFactorDevice[]>;
   deleteDevice(deviceId: string): Promise<void>;
@@ -390,11 +393,14 @@ WebAuthn/FIDO2 passwordless authentication.
 ```typescript
 class WebAuthnService {
   getRegistrationOptions(userId: string): Promise<WebAuthnRegistrationOptions>;
-  registerCredential(userId: string, credential: WebAuthnCredentialCreation): Promise<WebAuthnDevice>;
-  
+  registerCredential(
+    userId: string,
+    credential: WebAuthnCredentialCreation
+  ): Promise<WebAuthnDevice>;
+
   getAuthenticationOptions(userId: string): Promise<WebAuthnAuthenticationOptions>;
   authenticateCredential(userId: string, assertion: WebAuthnCredentialAssertion): Promise<boolean>;
-  
+
   listDevices(userId: string): Promise<WebAuthnDevice[]>;
   deleteDevice(deviceId: string): Promise<void>;
 }
@@ -412,12 +418,12 @@ class RBACService {
   deleteRole(roleId: string): Promise<void>;
   getRole(roleId: string): Promise<Role | null>;
   listRoles(orgId: string): Promise<Role[]>;
-  
+
   // Assignments
   assignRoleToUser(userId: string, roleId: string, orgId: string): Promise<void>;
   revokeRoleFromUser(userId: string, roleId: string, orgId: string): Promise<void>;
   getUserRoles(userId: string, orgId: string): Promise<Role[]>;
-  
+
   // Permissions
   hasPermission(userId: string, check: PermissionCheck): Promise<boolean>;
   hasAnyPermission(userId: string, checks: PermissionCheck[]): Promise<boolean>;
@@ -436,12 +442,12 @@ class SSOService {
   registerOIDCProvider(config: OIDCProviderConfig): Promise<OIDCProvider>;
   getOIDCAuthorizationUrl(providerId: string, options: OIDCOptions): Promise<string>;
   handleOIDCCallback(providerId: string, params: OIDCCallbackParams): Promise<OIDCCallbackResult>;
-  
+
   // SAML
   registerSAMLProvider(config: SAMLProviderConfig): Promise<SAMLProvider>;
   getSAMLAuthRequest(providerId: string, options: SAMLOptions): Promise<string>;
   handleSAMLResponse(providerId: string, samlResponse: string): Promise<SAMLCallbackResult>;
-  
+
   // Links
   linkSSOProvider(userId: string, providerId: string, subject: string): Promise<SSOLink>;
   getUserSSOLinks(userId: string): Promise<SSOLink[]>;
@@ -556,10 +562,10 @@ import { getReactAuth } from '@kitiumai/auth';
 
 function MyComponent() {
   const { user, isLoading, signOut } = await getReactAuth();
-  
+
   if (isLoading) return <div>Loading...</div>;
   if (!user) return <div>Not authenticated</div>;
-  
+
   return (
     <div>
       <p>Welcome, {user.email}</p>
@@ -614,4 +620,3 @@ MIT
 - [Documentation](https://github.com/kitium-ai/auth)
 - [Issues](https://github.com/kitium-ai/auth/issues)
 - [Discussions](https://github.com/kitium-ai/auth/discussions)
-

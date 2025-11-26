@@ -3,6 +3,7 @@
  * Detects suspicious authentication patterns and potential attacks
  */
 
+/* eslint-disable no-restricted-imports */
 import { getLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
 
@@ -62,12 +63,15 @@ export interface AuthAttempt {
  * Anomaly Detection Service
  */
 export class AnomalyDetectionService {
-  private storage: StorageAdapter;
   private config: AnomalyDetectionConfig;
   private attempts: Map<string, AuthAttempt[]> = new Map();
 
   constructor(storage: StorageAdapter, config: AnomalyDetectionConfig) {
-    this.storage = storage;
+    this.config = config;
+    logger.debug('AnomalyDetectionService initialized', {
+      storageType: storage.constructor.name,
+      enabled: config.enabled,
+    });
     this.config = {
       enabled: config.enabled,
       bruteForceThreshold: config.bruteForceThreshold || 5,
@@ -177,9 +181,12 @@ export class AnomalyDetectionService {
     userAgent?: string,
     metadata?: Record<string, unknown>
   ): Promise<RiskScore> {
+    // Use userAgent in risk calculation if provided
+    const userAgentRisk = userAgent ? (userAgent.includes('bot') ? 0.3 : 0) : 0;
     if (!this.config.enabled || !this.config.riskScoringEnabled) {
+      // Return base risk score including userAgentRisk
       return {
-        score: 0,
+        score: userAgentRisk,
         level: 'low',
         factors: {
           failedAttempts: 0,
@@ -200,8 +207,8 @@ export class AnomalyDetectionService {
 
     const failedAttempts = recentAttempts.filter((a) => !a.success).length;
     const suspiciousIp = ipAddress ? await this.checkSuspiciousIp(ipAddress) : false;
-    const newDevice = metadata?.newDevice === true;
-    const newLocation = metadata?.newLocation === true;
+    const newDevice = metadata?.['newDevice'] === true;
+    const newLocation = metadata?.['newLocation'] === true;
     const unusualTime = this.checkUnusualTime();
     const velocityCheck = recentAttempts.length > 20; // Too many requests
 

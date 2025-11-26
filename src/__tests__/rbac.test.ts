@@ -1,38 +1,41 @@
+/* eslint-disable no-restricted-imports */
 import { RBACService } from '../rbac/service';
 import { ValidationError, AuthorizationError } from '../errors';
 
 // Mock storage adapter
 class MockStorageAdapter {
-  private roles: Map<string, any> = new Map();
+  private roles: Map<string, Record<string, unknown>> = new Map();
   private userRoles: Map<string, string[]> = new Map();
 
-  async createRole(data: any) {
-    const role = { ...data, id: `role_${Math.random()}` };
-    this.roles.set(role.id, role);
+  async createRole(data: unknown): Promise<unknown> {
+    const role = { ...(data as Record<string, unknown>), id: `role_${Math.random()}` };
+    this.roles.set(role.id as string, role);
     return role;
   }
 
-  async getRole(roleId: string) {
+  async getRole(roleId: string): Promise<unknown> {
     return this.roles.get(roleId) || null;
   }
 
-  async listRoles(orgId: string) {
-    return Array.from(this.roles.values()).filter((r) => r.orgId === orgId);
+  async listRoles(orgId: string): Promise<unknown[]> {
+    return Array.from(this.roles.values()).filter((r) => (r as { orgId: string }).orgId === orgId);
   }
 
-  async updateRole(roleId: string, updates: any) {
+  async updateRole(roleId: string, updates: unknown): Promise<unknown> {
     const role = this.roles.get(roleId);
-    if (!role) return null;
-    const updated = { ...role, ...updates };
+    if (!role) {
+      return null;
+    }
+    const updated = { ...role, ...(updates as Record<string, unknown>) };
     this.roles.set(roleId, updated);
     return updated;
   }
 
-  async deleteRole(roleId: string) {
+  async deleteRole(roleId: string): Promise<void> {
     this.roles.delete(roleId);
   }
 
-  async assignRoleToUser(userId: string, roleId: string, orgId: string) {
+  async assignRoleToUser(userId: string, roleId: string, orgId: string): Promise<void> {
     const key = `${userId}_${orgId}`;
     const roles = this.userRoles.get(key) || [];
     if (!roles.includes(roleId)) {
@@ -41,7 +44,7 @@ class MockStorageAdapter {
     }
   }
 
-  async revokeRoleFromUser(userId: string, roleId: string, orgId: string) {
+  async revokeRoleFromUser(userId: string, roleId: string, orgId: string): Promise<void> {
     const key = `${userId}_${orgId}`;
     const roles = this.userRoles.get(key) || [];
     this.userRoles.set(
@@ -50,10 +53,12 @@ class MockStorageAdapter {
     );
   }
 
-  async getUserRoles(userId: string, orgId: string) {
+  async getUserRoles(userId: string, orgId: string): Promise<unknown[]> {
     const key = `${userId}_${orgId}`;
     const roleIds = this.userRoles.get(key) || [];
-    return roleIds.map((id) => this.roles.get(id)).filter(Boolean);
+    return roleIds
+      .map((id) => this.roles.get(id))
+      .filter((r): r is Record<string, unknown> => Boolean(r));
   }
 }
 
@@ -63,7 +68,9 @@ describe('RBACService', () => {
 
   beforeEach(() => {
     mockStorage = new MockStorageAdapter();
-    rbacService = new RBACService(mockStorage as any, { enabled: true });
+    rbacService = new RBACService(mockStorage as unknown as import('../types').StorageAdapter, {
+      enabled: true,
+    });
   });
 
   describe('Role Management', () => {
@@ -220,7 +227,10 @@ describe('RBACService', () => {
 
   describe('RBAC Disabled', () => {
     it('should throw error when RBAC is disabled', async () => {
-      const disabledService = new RBACService(mockStorage as any, { enabled: false });
+      const disabledService = new RBACService(
+        mockStorage as unknown as import('../types').StorageAdapter,
+        { enabled: false }
+      );
 
       await expect(disabledService.createRole('org_1', 'Admin', [])).rejects.toThrow(
         ValidationError

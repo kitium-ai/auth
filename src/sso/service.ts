@@ -1,5 +1,5 @@
+/* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
-import * as jwt from 'jsonwebtoken';
 import { getLogger } from '@kitiumai/logger';
 import {
   SSOConfig,
@@ -9,9 +9,10 @@ import {
   SSOLink,
   OIDCTokenResponse,
   OIDCUserInfo,
+  SSOProviderType,
+  StorageAdapter,
 } from '../types';
-import { ValidationError, AuthenticationError, NotFoundError } from '../errors';
-import { StorageAdapter } from '../types';
+import { ValidationError, NotFoundError } from '../errors';
 
 /**
  * SSO (Single Sign-On) Service
@@ -46,7 +47,7 @@ export class SSOService {
 
     this.logger.debug('Registering OIDC provider', {
       name: provider.name,
-      orgId: (provider as any).orgId,
+      orgId: (provider as { orgId?: string }).orgId,
     });
 
     const providerId = `oidc_${nanoid()}`;
@@ -180,8 +181,11 @@ export class SSOService {
     const metadata = await this.fetchOIDCMetadata(provider.metadata_url);
 
     const params = new URLSearchParams({
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       client_id: provider.client_id,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       redirect_uri: redirectUri || provider.redirect_uris[0],
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       response_type: provider.response_type || 'code',
       scope: (provider.scopes || ['openid', 'profile', 'email']).join(' '),
       state,
@@ -196,8 +200,8 @@ export class SSOService {
    */
   async exchangeOIDCCode(
     providerId: string,
-    code: string,
-    redirectUri: string
+    _code: string,
+    _redirectUri: string
   ): Promise<OIDCTokenResponse & { userInfo: OIDCUserInfo }> {
     const provider = (await this.getProvider(providerId)) as OIDCProvider | null;
     if (!provider || provider.type !== 'oidc') {
@@ -208,7 +212,7 @@ export class SSOService {
       });
     }
 
-    const metadata = await this.fetchOIDCMetadata(provider.metadata_url);
+    await this.fetchOIDCMetadata(provider.metadata_url);
 
     // In production, make actual HTTP request to token endpoint
     // const tokenResponse = await fetch(metadata.token_endpoint, {
@@ -225,8 +229,11 @@ export class SSOService {
 
     // Mock response for now
     const tokenResponse: OIDCTokenResponse = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       access_token: 'mock_access_token',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       token_type: 'Bearer',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       expires_in: 3600,
     };
 
@@ -244,9 +251,9 @@ export class SSOService {
    */
   private async getOIDCUserInfo(
     provider: OIDCProvider,
-    accessToken: string
+    _accessToken: string
   ): Promise<OIDCUserInfo> {
-    const metadata = await this.fetchOIDCMetadata(provider.metadata_url);
+    await this.fetchOIDCMetadata(provider.metadata_url);
 
     // In production, make actual HTTP request to userinfo endpoint
     // const response = await fetch(metadata.userinfo_endpoint, {
@@ -259,6 +266,7 @@ export class SSOService {
       sub: `${provider.id}_user_${nanoid()}`,
       name: 'Test User',
       email: 'test@example.com',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       email_verified: true,
       picture: 'https://example.com/photo.jpg',
     };
@@ -267,13 +275,17 @@ export class SSOService {
   /**
    * Fetch and cache OIDC metadata
    */
-  private async fetchOIDCMetadata(metadataUrl: string): Promise<any> {
+  private async fetchOIDCMetadata(_metadataUrl: string): Promise<Record<string, unknown>> {
     // In production, cache this and implement refresh logic
     // For now, return mock metadata
     return {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       authorization_endpoint: 'https://provider.example.com/authorize',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       token_endpoint: 'https://provider.example.com/token',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       userinfo_endpoint: 'https://provider.example.com/userinfo',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       jwks_uri: 'https://provider.example.com/.well-known/jwks.json',
       issuer: 'https://provider.example.com',
     };
@@ -305,7 +317,7 @@ export class SSOService {
       id: linkId,
       userId,
       providerId,
-      providerType: provider.type as any,
+      providerType: provider.type as SSOProviderType,
       providerSubject,
       providerEmail,
       autoProvisioned,
@@ -386,7 +398,7 @@ export class SSOService {
       id: sessionId,
       userId,
       providerId,
-      providerType: provider.type as any,
+      providerType: provider.type as SSOProviderType,
       providerSubject,
       expiresAt: new Date(now.getTime() + 24 * 60 * 60 * 1000), // 24 hours
       linkedAt: now,

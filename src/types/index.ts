@@ -8,7 +8,7 @@ export interface Principal {
   orgId?: string;
   plan?: string;
   entitlements: Scope[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IssueApiKeyInput {
@@ -51,7 +51,7 @@ export interface Session {
   entitlements: Scope[];
   expiresAt: Date;
   createdAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Entitlement {
@@ -65,7 +65,7 @@ export interface Plan {
   name: string;
   entitlements: Scope[];
   seats?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Organization {
@@ -74,7 +74,7 @@ export interface Organization {
   plan: string;
   seats: number;
   members: OrganizationMember[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,7 +89,7 @@ export interface AuthEvent {
   type: string;
   principalId: string;
   orgId?: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -118,13 +118,13 @@ export interface AuthProvider {
   clientSecret?: string;
   redirectUri?: string;
   scopes?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface StorageConfig {
   driver: 'postgres' | 'mysql' | 'sqlite' | 'memory';
   url?: string;
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 }
 
 export interface BillingConfig {
@@ -138,7 +138,7 @@ export interface BillingProduct {
   plan: string;
   entitlements: Scope[];
   seats?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ApiKeyConfig {
@@ -221,46 +221,69 @@ export interface StorageAdapter {
   incrementEmailVerificationTokenAttempts(tokenId: string): Promise<number>;
 
   // SAML Configuration (optional - for multi-tenant SAML)
-  storeTenantSAMLConfig?(config: any): Promise<void>;
-  getTenantSAMLConfig?(tenantId: string): Promise<any | null>;
-  updateTenantSAMLConfig?(tenantId: string, updates: Partial<any>): Promise<void>;
+  storeTenantSAMLConfig?(config: unknown): Promise<void>;
+  getTenantSAMLConfig?(tenantId: string): Promise<unknown | null>;
+  updateTenantSAMLConfig?(tenantId: string, updates: Partial<unknown>): Promise<void>;
   deleteTenantSAMLConfig?(tenantId: string): Promise<void>;
 
   // RBAC (optional)
-  createRole?(data: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<any>;
-  getRole?(roleId: string): Promise<any | null>;
-  updateRole?(roleId: string, data: Partial<any>): Promise<any>;
+  createRole?(
+    data: Omit<import('./rbac').RoleRecord, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<import('./rbac').RoleRecord>;
+  getRole?(roleId: string): Promise<import('./rbac').RoleRecord | null>;
+  updateRole?(
+    roleId: string,
+    data: Partial<import('./rbac').RoleRecord>
+  ): Promise<import('./rbac').RoleRecord>;
   deleteRole?(roleId: string): Promise<void>;
-  listRoles?(orgId: string): Promise<any[]>;
-  assignRoleToUser?(userId: string, roleId: string, orgId: string): Promise<any>;
+  listRoles?(orgId: string): Promise<import('./rbac').RoleRecord[]>;
+  assignRoleToUser?(
+    userId: string,
+    roleId: string,
+    orgId: string
+  ): Promise<import('./rbac').RoleRecord>;
   revokeRoleFromUser?(userId: string, roleId: string, orgId: string): Promise<void>;
-  getUserRoles?(userId: string, orgId: string): Promise<any[]>;
+  getUserRoles?(userId: string, orgId: string): Promise<import('./rbac').RoleRecord[]>;
 
   // 2FA (optional)
-  createTwoFactorDevice?(data: any): Promise<any>;
-  getTwoFactorDevice?(deviceId: string): Promise<any | null>;
-  updateTwoFactorDevice?(deviceId: string, data: Partial<any>): Promise<any>;
-  listTwoFactorDevices?(userId: string): Promise<any[]>;
+  createTwoFactorDevice?(
+    data: Omit<import('./2fa').TwoFactorDevice, 'id' | 'createdAt'>
+  ): Promise<import('./2fa').TwoFactorDevice>;
+  getTwoFactorDevice?(deviceId: string): Promise<import('./2fa').TwoFactorDevice | null>;
+  updateTwoFactorDevice?(
+    deviceId: string,
+    data: Partial<import('./2fa').TwoFactorDevice>
+  ): Promise<import('./2fa').TwoFactorDevice>;
+  listTwoFactorDevices?(userId: string): Promise<import('./2fa').TwoFactorDevice[]>;
   deleteTwoFactorDevice?(deviceId: string): Promise<void>;
-  createBackupCodes?(userId: string, codes: any[]): Promise<any[]>;
-  getBackupCodes?(userId: string): Promise<any[]>;
+  createBackupCodes?(
+    userId: string,
+    codes: import('./2fa').BackupCode[]
+  ): Promise<import('./2fa').BackupCode[]>;
+  getBackupCodes?(userId: string): Promise<import('./2fa').BackupCode[]>;
   markBackupCodeUsed?(codeId: string): Promise<void>;
-  createTwoFactorSession?(data: any): Promise<any>;
-  getTwoFactorSession?(sessionId: string): Promise<any | null>;
+  createTwoFactorSession?(
+    data: import('./2fa').TwoFactorSession
+  ): Promise<import('./2fa').TwoFactorSession>;
+  getTwoFactorSession?(sessionId: string): Promise<import('./2fa').TwoFactorSession | null>;
   completeTwoFactorSession?(sessionId: string): Promise<void>;
 
   // SSO (optional)
-  createSSOProvider?(data: any): Promise<any>;
-  getSSOProvider?(providerId: string): Promise<any | null>;
-  updateSSOProvider?(providerId: string, data: Partial<any>): Promise<any>;
+  createSSOProvider?(data: unknown): Promise<unknown>;
+  getSSOProvider?(providerId: string): Promise<unknown | null>;
+  updateSSOProvider?(providerId: string, data: Partial<unknown>): Promise<unknown>;
   deleteSSOProvider?(providerId: string): Promise<void>;
-  listSSOProviders?(orgId?: string): Promise<any[]>;
-  createSSOLink?(data: any): Promise<any>;
-  getSSOLink?(linkId: string): Promise<any | null>;
-  getUserSSOLinks?(userId: string): Promise<any[]>;
+  listSSOProviders?(orgId?: string): Promise<unknown[]>;
+  createSSOLink?(
+    data: Omit<import('./sso').SSOLink, 'id' | 'linkedAt' | 'lastAuthAt'>
+  ): Promise<import('./sso').SSOLink>;
+  getSSOLink?(linkId: string): Promise<import('./sso').SSOLink | null>;
+  getUserSSOLinks?(userId: string): Promise<import('./sso').SSOLink[]>;
   deleteSSOLink?(linkId: string): Promise<void>;
-  createSSOSession?(data: any): Promise<any>;
-  getSSOSession?(sessionId: string): Promise<any | null>;
+  createSSOSession?(
+    data: Omit<import('./sso').SSOSession, 'id' | 'linkedAt' | 'lastAuthAt'>
+  ): Promise<import('./sso').SSOSession>;
+  getSSOSession?(sessionId: string): Promise<import('./sso').SSOSession | null>;
 
   // Events
   emitEvent(event: AuthEvent): Promise<void>;
@@ -276,14 +299,14 @@ export interface BillingAdapter {
   getSubscription(id: string): Promise<Subscription | null>;
   updateSubscription(id: string, data: Partial<SubscriptionData>): Promise<Subscription>;
   cancelSubscription(id: string): Promise<Subscription>;
-  processWebhook(payload: any, signature: string): Promise<WebhookEvent>;
+  processWebhook(payload: unknown, signature: string): Promise<WebhookEvent>;
 }
 
 export interface CacheAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-  get(key: string): Promise<any>;
-  set(key: string, value: any, ttl?: number): Promise<void>;
+  get(key: string): Promise<unknown>;
+  set(key: string, value: unknown, ttl?: number): Promise<void>;
   del(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
   expire(key: string, ttl: number): Promise<void>;
@@ -310,7 +333,7 @@ export interface SessionRecord {
   plan?: string;
   entitlements: Scope[];
   expiresAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -321,7 +344,7 @@ export interface OrganizationRecord {
   plan: string;
   seats: number;
   members: OrganizationMember[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -335,7 +358,7 @@ export interface User {
   plan?: string;
   entitlements: Scope[];
   oauth?: Record<string, OAuthLink>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -348,7 +371,7 @@ export interface OAuthLink {
   linkedAt: Date;
 }
 
-export interface UserRecord extends User {}
+export type UserRecord = User;
 
 export interface CreateUserInput {
   email?: string;
@@ -356,7 +379,7 @@ export interface CreateUserInput {
   picture?: string;
   plan?: string;
   entitlements?: Scope[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateUserInput {
@@ -365,7 +388,7 @@ export interface UpdateUserInput {
   picture?: string;
   plan?: string;
   entitlements?: Scope[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Email verification types
@@ -376,7 +399,7 @@ export interface EmailVerificationToken {
   codeHash: string;
   type: 'verify_email' | 'reset_password' | 'change_email' | 'login_link';
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   expiresAt: Date;
   createdAt: Date;
   usedAt?: Date;
@@ -387,14 +410,14 @@ export interface Customer {
   id: string;
   email: string;
   name?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
 export interface CustomerData {
   email: string;
   name?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Subscription {
@@ -404,19 +427,19 @@ export interface Subscription {
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
 export interface SubscriptionData {
   customerId: string;
   productId: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface WebhookEvent {
   type: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -434,7 +457,7 @@ export interface OAuthProfile {
   name?: string;
   picture?: string;
   emailVerified?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface OAuthTokenResponse {

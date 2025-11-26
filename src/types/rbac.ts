@@ -6,7 +6,7 @@ export interface Permission {
   description?: string;
   resource: string;
   action: string; // e.g., 'read', 'write', 'delete', 'admin'
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Role {

@@ -1,3 +1,3 @@
-export function BillingPortal(_props: any) {
+export function billingPortal(_props: unknown): null {
   return null;
 }

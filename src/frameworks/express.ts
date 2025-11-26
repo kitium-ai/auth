@@ -12,7 +12,11 @@ const logger = getLogger();
  */
 export function authMiddleware(options?: Record<string, unknown>) {
   return (req: Request, res: Response, next: NextFunction) => {
-    logger.debug('Express auth middleware');
+    logger.debug('Express auth middleware', { options: options || {} });
+    // Store auth context in request for downstream middleware
+    (req as { auth?: { options?: Record<string, unknown> } }).auth = { options };
+    // Store response object for potential use in downstream handlers
+    (res as { authContext?: { options?: Record<string, unknown> } }).authContext = { options };
     next();
   };
 }

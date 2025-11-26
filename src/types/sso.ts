@@ -1,5 +1,6 @@
 // Single Sign-On (SSO) types for enhanced OIDC and multi-provider support
 
+/* eslint-disable @typescript-eslint/naming-convention */
 export type SSOProviderType = 'saml' | 'oidc' | 'oauth';
 
 export interface SSOConfig {
@@ -27,12 +28,12 @@ export interface OIDCProvider {
     pictureAttribute?: string; // Default: 'picture'
     subAttribute?: string; // Default: 'sub'
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface SAMLProvider {
+export interface SSOSAMLProvider {
   id: string;
   type: 'saml';
   name: string;
@@ -54,7 +55,7 @@ export interface SAMLProvider {
     pictureAttribute?: string;
     subAttribute?: string; // Default: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,16 +80,20 @@ export interface SSOLink {
   providerSubject: string; // Remote user ID from provider
   providerEmail?: string; // Email from provider
   autoProvisioned?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   linkedAt: Date;
   lastAuthAt: Date;
 }
 
 export interface OIDCTokenResponse {
   access_token: string;
+
   token_type: string;
+
   expires_in?: number;
+
   refresh_token?: string;
+
   id_token?: string;
   scope?: string;
 }
@@ -100,7 +105,7 @@ export interface OIDCUserInfo {
   email_verified?: boolean;
   picture?: string;
   locale?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SAMLAssertion {
@@ -108,15 +113,15 @@ export interface SAMLAssertion {
   sessionIndex?: string;
   notBefore?: Date;
   notOnOrAfter?: Date;
-  attributes?: Record<string, any>;
-  metadata?: Record<string, any>;
+  attributes?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 // Database record types
-export interface OIDCProviderRecord extends OIDCProvider {}
+export type OIDCProviderRecord = OIDCProvider;
 
-export interface SAMLProviderRecord extends SAMLProvider {}
+export type SAMLProviderRecord = SSOSAMLProvider;
 
-export interface SSOSessionRecord extends SSOSession {}
+export type SSOSessionRecord = SSOSession;
 
-export interface SSOLinkRecord extends SSOLink {}
+export type SSOLinkRecord = SSOLink;

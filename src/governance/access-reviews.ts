@@ -3,6 +3,7 @@
  * Periodic access certification and review workflows
  */
 
+/* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
 import { getLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
@@ -64,13 +65,11 @@ export interface AccessReviewCampaign {
  * Access Review Service
  */
 export class AccessReviewService {
-  private storage: StorageAdapter;
   private reviews: Map<string, AccessReview> = new Map();
   private campaigns: Map<string, AccessReviewCampaign> = new Map();
 
   constructor(storage: StorageAdapter) {
-    this.storage = storage;
-    logger.debug('AccessReviewService initialized');
+    logger.debug('AccessReviewService initialized', { storageType: storage.constructor.name });
   }
 
   /**
@@ -91,15 +90,18 @@ export class AccessReviewService {
     const campaignId = `campaign_${nanoid()}`;
     const now = new Date();
 
+    const description = options?.description;
+    const schedule = options?.schedule;
+    const autoApproveAfterDays = options?.autoApproveAfterDays;
     const campaign: AccessReviewCampaign = {
       id: campaignId,
       orgId,
       name,
-      description: options?.description,
+      ...(description !== undefined ? { description } : {}),
       type,
-      schedule: options?.schedule,
+      ...(schedule !== undefined ? { schedule } : {}),
       autoApprove: options?.autoApprove || false,
-      autoApproveAfterDays: options?.autoApproveAfterDays,
+      ...(autoApproveAfterDays !== undefined ? { autoApproveAfterDays } : {}),
       reviewers,
       status: 'draft',
       createdAt: now,
@@ -121,6 +123,8 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/campaign_not_found',
         message: `Campaign not found: ${campaignId}`,
+        severity: 'error',
+        retryable: false,
         context: { campaignId },
       });
     }
@@ -129,6 +133,8 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/campaign_not_draft',
         message: 'Campaign is not in draft status',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -192,13 +198,21 @@ export class AccessReviewService {
   ): Promise<AccessReview> {
     const review = this.reviews.get(reviewId);
     if (!review) {
-      throw new ValidationError(`Review not found: ${reviewId}`);
+      throw new ValidationError({
+        code: 'auth/review_not_found',
+        message: `Review not found: ${reviewId}`,
+        severity: 'error',
+        retryable: false,
+        context: { reviewId },
+      });
     }
 
     if (review.reviewerId !== reviewerId) {
       throw new AuthorizationError({
         code: 'auth/review_unauthorized',
         message: 'Not authorized to review this access',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -206,6 +220,8 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/review_not_pending',
         message: 'Review is not pending',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -214,11 +230,13 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/review_expired',
         message: 'Review has expired',
+        severity: 'error',
+        retryable: false,
       });
     }
 
     review.status = status;
-    review.comments = comments;
+    review.comments = comments ?? undefined;
     review.reviewedAt = new Date();
 
     logger.info('Access review completed', { reviewId, status, reviewerId });
@@ -292,6 +310,8 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/campaign_not_found',
         message: `Campaign not found: ${campaignId}`,
+        severity: 'error',
+        retryable: false,
         context: { campaignId },
       });
     }
@@ -304,6 +324,8 @@ export class AccessReviewService {
       throw new ValidationError({
         code: 'auth/campaign_has_pending_reviews',
         message: 'Campaign has pending reviews',
+        severity: 'error',
+        retryable: false,
       });
     }
 

@@ -292,6 +292,8 @@ export function getEnvVarAsNumber(name: string, defaultValue: number = 0): numbe
  */
 export function getEnvVarAsBoolean(name: string, defaultValue: boolean = false): boolean {
   const value = getEnvVar(name);
-  if (!value) return defaultValue;
+  if (!value) {
+    return defaultValue;
+  }
   return value.toLowerCase() === 'true' || value === '1';
 }

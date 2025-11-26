@@ -44,14 +44,16 @@ export class HookManagerImpl implements HookManager {
    * Register a one-time hook handler
    */
   once<T = unknown>(event: HookEventType, handler: HookHandler<T>, priority: number = 100): string {
-    let hookId: string;
+    const hookIdRef: { current: string | null } = { current: null };
     const wrappedHandler: HookHandler<T> = async (context, data) => {
       await handler(context, data);
-      this.off(hookId);
+      if (hookIdRef.current) {
+        this.off(hookIdRef.current);
+      }
     };
 
-    hookId = this.on(event, wrappedHandler, priority);
-    return hookId;
+    hookIdRef.current = this.on(event, wrappedHandler, priority);
+    return hookIdRef.current;
   }
 
   /**

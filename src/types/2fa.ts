@@ -1,5 +1,6 @@
 // Two-Factor Authentication (2FA) types
 
+/* eslint-disable @typescript-eslint/naming-convention */
 export type TwoFactorMethod = 'totp' | 'sms' | 'backup-code';
 
 export interface TwoFactorConfig {
@@ -30,7 +31,7 @@ export interface TwoFactorDevice {
   verified: boolean;
   lastUsedAt?: Date;
   createdAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface TOTPDevice extends TwoFactorDevice {
@@ -112,14 +113,14 @@ export interface TwoFactorDevice {
   verified: boolean;
   lastUsedAt?: Date;
   createdAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Database record types
-export interface TOTPDeviceRecord extends TOTPDevice {}
+export type TOTPDeviceRecord = TOTPDevice;
 
-export interface SMSDeviceRecord extends SMSDevice {}
+export type SMSDeviceRecord = SMSDevice;
 
-export interface BackupCodeRecord extends BackupCode {}
+export type BackupCodeRecord = BackupCode;
 
-export interface TwoFactorSessionRecord extends TwoFactorSession {}
+export type TwoFactorSessionRecord = TwoFactorSession;

@@ -11,7 +11,7 @@ export interface Plugin {
   type: 'storage' | 'billing' | 'framework' | 'provider';
   setup: (context: PluginContext) => Promise<void>;
   teardown?: () => Promise<void>;
-  hooks?: Record<string, Function>;
+  hooks?: Record<string, (...args: unknown[]) => Promise<unknown> | unknown>;
 }
 
 /**
@@ -20,7 +20,12 @@ export interface Plugin {
 export interface PluginContext {
   appName: string;
   config: Record<string, unknown>;
-  logger: any;
+  logger: {
+    debug: (message: string, data?: unknown) => void;
+    info: (message: string, data?: unknown) => void;
+    warn: (message: string, data?: unknown) => void;
+    error: (message: string, data?: unknown) => void;
+  };
   utils: Record<string, unknown>;
 }
 

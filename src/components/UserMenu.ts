@@ -1,3 +1,3 @@
-export function UserMenu(_props: any) {
+export function userMenu(_props: unknown): null {
   return null;
 }

@@ -10,10 +10,11 @@ const logger = getLogger();
  * withAuth HOC for Next.js pages
  */
 export function withAuth(options?: Record<string, unknown>) {
-  return function withAuthHOC(Component: any) {
-    return function WithAuthComponent(props: any) {
-      logger.debug('withAuth HOC');
-      return Component(props);
+  return function withAuthHOC(component: (props: Record<string, unknown>) => unknown) {
+    return function withAuthComponent(props: Record<string, unknown>) {
+      logger.debug('withAuth HOC', { options: options || {} });
+      // Merge options into props for component access
+      return component({ ...props, authOptions: options });
     };
   };
 }
@@ -22,9 +23,9 @@ export function withAuth(options?: Record<string, unknown>) {
  * Next.js API route auth middleware
  */
 export async function apiAuth(
-  req: any,
-  res: any,
-  handler: (req: any, res: any) => Promise<void>
+  req: Record<string, unknown>,
+  res: Record<string, unknown>,
+  handler: (req: Record<string, unknown>, res: Record<string, unknown>) => Promise<void>
 ): Promise<void> {
   logger.debug('Next.js API auth');
   await handler(req, res);

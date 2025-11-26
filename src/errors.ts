@@ -5,13 +5,8 @@
 
 import {
   KitiumError,
-  ValidationError,
   AuthenticationError,
-  AuthorizationError,
   NotFoundError,
-  ConflictError,
-  RateLimitError,
-  BusinessError,
   InternalError,
   toKitiumError,
   problemDetailsFrom,
@@ -35,20 +30,22 @@ export class AuthError extends KitiumError {
       severity: 'error',
       kind: 'internal',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'AuthError';
   }
 }
 
 // Re-export typed error classes from @kitiumai/error
-export { ValidationError } from '@kitiumai/error';
-export { AuthenticationError } from '@kitiumai/error';
-export { AuthorizationError } from '@kitiumai/error';
-export { NotFoundError } from '@kitiumai/error';
-export { ConflictError } from '@kitiumai/error';
-export { RateLimitError } from '@kitiumai/error';
-export { InternalError } from '@kitiumai/error';
+export {
+  ValidationError,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  InternalError,
+} from '@kitiumai/error';
 
 /**
  * OAuth error
@@ -62,7 +59,7 @@ export class OAuthError extends KitiumError {
       severity: 'error',
       kind: 'auth',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'OAuthError';
   }
@@ -94,7 +91,7 @@ export class TokenError extends AuthenticationError {
       message,
       severity: 'error',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'TokenError';
   }
@@ -110,7 +107,7 @@ export class SessionError extends AuthenticationError {
       message,
       severity: 'error',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'SessionError';
   }
@@ -126,7 +123,7 @@ export class ApiKeyError extends AuthenticationError {
       message,
       severity: 'error',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'ApiKeyError';
   }
@@ -142,7 +139,7 @@ export class DatabaseError extends InternalError {
       message,
       severity: 'error',
       retryable: true,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'DatabaseError';
   }
@@ -158,7 +155,7 @@ export class ConfigurationError extends InternalError {
       message,
       severity: 'error',
       retryable: false,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'ConfigurationError';
   }
@@ -174,7 +171,7 @@ export class IntegrationError extends InternalError {
       message,
       severity: 'error',
       retryable: true,
-      ...(details ? { context: details as any } : {}),
+      ...(details ? { context: details as Record<string, unknown> } : {}),
     });
     this.name = 'IntegrationError';
   }

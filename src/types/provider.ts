@@ -9,7 +9,7 @@ export interface Provider {
   type: ProviderType;
   enabled: boolean;
   name: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface OAuthProvider extends Provider {

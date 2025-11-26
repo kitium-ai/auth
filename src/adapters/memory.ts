@@ -3,7 +3,8 @@
  * Development and testing adapter that stores data in memory
  */
 
-import {
+/* eslint-disable no-restricted-imports */
+import type {
   StorageAdapter,
   ApiKeyRecord,
   SessionRecord,
@@ -14,6 +15,11 @@ import {
   EmailVerificationToken,
   AuthEvent,
   OAuthLink,
+  RoleRecord,
+  TwoFactorDevice,
+  BackupCode,
+  SSOSession,
+  SSOLink,
 } from '../types';
 
 /**
@@ -27,17 +33,17 @@ export class MemoryStorageAdapter implements StorageAdapter {
   private apiKeys = new Map<string, ApiKeyRecord>();
   private apiKeysByHash = new Map<string, ApiKeyRecord>();
   private organizations = new Map<string, OrganizationRecord>();
-  private roles = new Map<string, any>();
-  private twoFactorDevices = new Map<string, any>();
-  private backupCodes = new Map<string, any[]>();
+  private roles = new Map<string, RoleRecord>();
+  private twoFactorDevices = new Map<string, TwoFactorDevice>();
+  private backupCodes = new Map<string, BackupCode[]>();
   private emailVerificationTokens = new Map<string, EmailVerificationToken>();
   private emailTokenAttempts = new Map<string, number>();
-  private ssoProviders = new Map<string, any>();
-  private ssoLinks = new Map<string, any>();
-  private ssoSessions = new Map<string, any>();
-  private tenantSAMLConfigs = new Map<string, any>();
+  private ssoProviders = new Map<string, unknown>();
+  private ssoLinks = new Map<string, SSOLink>();
+  private ssoSessions = new Map<string, SSOSession>();
+  private tenantSAMLConfigs = new Map<string, unknown>();
   private userRoles = new Map<string, string[]>();
-  private twoFactorSessions = new Map<string, any>();
+  private twoFactorSessions = new Map<string, unknown>();
   private events: AuthEvent[] = [];
 
   async connect(): Promise<void> {
@@ -97,7 +103,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async updateApiKey(id: string, data: Partial<ApiKeyRecord>): Promise<ApiKeyRecord> {
     const key = this.apiKeys.get(id);
-    if (!key) throw new Error(`API key ${id} not found`);
+    if (!key) {
+      throw new Error(`API key ${id} not found`);
+    }
 
     const updated: ApiKeyRecord = {
       ...key,
@@ -151,7 +159,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async updateSession(id: string, data: Partial<SessionRecord>): Promise<SessionRecord> {
     const session = this.sessions.get(id);
-    if (!session) throw new Error(`Session ${id} not found`);
+    if (!session) {
+      throw new Error(`Session ${id} not found`);
+    }
 
     const updated: SessionRecord = {
       ...session,
@@ -193,7 +203,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
     data: Partial<OrganizationRecord>
   ): Promise<OrganizationRecord> {
     const org = this.organizations.get(id);
-    if (!org) throw new Error(`Organization ${id} not found`);
+    if (!org) {
+      throw new Error(`Organization ${id} not found`);
+    }
 
     const updated: OrganizationRecord = {
       ...org,
@@ -243,7 +255,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async updateUser(id: string, data: UpdateUserInput): Promise<UserRecord> {
     const user = this.users.get(id);
-    if (!user) throw new Error(`User ${id} not found`);
+    if (!user) {
+      throw new Error(`User ${id} not found`);
+    }
 
     const updated: UserRecord = {
       ...user,
@@ -290,7 +304,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
     oauthLink: OAuthLink
   ): Promise<UserRecord> {
     const user = this.users.get(userId);
-    if (!user) throw new Error(`User ${userId} not found`);
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
 
     if (!user.oauth) {
       user.oauth = {};
@@ -331,7 +347,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async getEmailVerificationTokenById(id: string): Promise<EmailVerificationToken | null> {
     const token = this.emailVerificationTokens.get(id);
-    if (!token) return null;
+    if (!token) {
+      return null;
+    }
 
     if (new Date() > token.expiresAt) {
       this.emailVerificationTokens.delete(id);
@@ -343,7 +361,9 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async markEmailVerificationTokenAsUsed(id: string): Promise<EmailVerificationToken> {
     const token = this.emailVerificationTokens.get(id);
-    if (!token) throw new Error(`Token ${id} not found`);
+    if (!token) {
+      throw new Error(`Token ${id} not found`);
+    }
 
     token.usedAt = new Date();
     return token;
@@ -376,17 +396,20 @@ export class MemoryStorageAdapter implements StorageAdapter {
   }
 
   // ===== SAML Configuration =====
-  async storeTenantSAMLConfig(config: any): Promise<void> {
-    this.tenantSAMLConfigs.set(config.tenantId, config);
+  async storeTenantSAMLConfig(config: unknown): Promise<void> {
+    const configWithTenantId = config as { tenantId: string };
+    this.tenantSAMLConfigs.set(configWithTenantId.tenantId, config);
   }
 
-  async getTenantSAMLConfig(tenantId: string): Promise<any | null> {
+  async getTenantSAMLConfig(tenantId: string): Promise<unknown | null> {
     return this.tenantSAMLConfigs.get(tenantId) || null;
   }
 
-  async updateTenantSAMLConfig(tenantId: string, updates: Partial<any>): Promise<void> {
+  async updateTenantSAMLConfig(tenantId: string, updates: Partial<unknown>): Promise<void> {
     const config = this.tenantSAMLConfigs.get(tenantId);
-    if (!config) throw new Error(`SAML config for tenant ${tenantId} not found`);
+    if (!config) {
+      throw new Error(`SAML config for tenant ${tenantId} not found`);
+    }
     this.tenantSAMLConfigs.set(tenantId, { ...config, ...updates });
   }
 
@@ -395,8 +418,8 @@ export class MemoryStorageAdapter implements StorageAdapter {
   }
 
   // ===== RBAC =====
-  async createRole(data: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<any> {
-    const role = {
+  async createRole(data: Omit<RoleRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<RoleRecord> {
+    const role: RoleRecord = {
       id: `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...data,
       createdAt: new Date(),
@@ -407,15 +430,17 @@ export class MemoryStorageAdapter implements StorageAdapter {
     return role;
   }
 
-  async getRole(roleId: string): Promise<any | null> {
+  async getRole(roleId: string): Promise<RoleRecord | null> {
     return this.roles.get(roleId) || null;
   }
 
-  async updateRole(roleId: string, data: Partial<any>): Promise<any> {
+  async updateRole(roleId: string, data: Partial<RoleRecord>): Promise<RoleRecord> {
     const role = this.roles.get(roleId);
-    if (!role) throw new Error(`Role ${roleId} not found`);
+    if (!role) {
+      throw new Error(`Role ${roleId} not found`);
+    }
 
-    const updated = {
+    const updated: RoleRecord = {
       ...role,
       ...data,
       id: role.id,
@@ -430,13 +455,15 @@ export class MemoryStorageAdapter implements StorageAdapter {
     this.roles.delete(roleId);
   }
 
-  async listRoles(orgId: string): Promise<any[]> {
+  async listRoles(orgId: string): Promise<RoleRecord[]> {
     return Array.from(this.roles.values()).filter((r) => r.orgId === orgId);
   }
 
-  async assignRoleToUser(userId: string, roleId: string, orgId: string): Promise<any> {
+  async assignRoleToUser(userId: string, roleId: string, orgId: string): Promise<RoleRecord> {
     const role = this.roles.get(roleId);
-    if (!role) throw new Error(`Role ${roleId} not found`);
+    if (!role) {
+      throw new Error(`Role ${roleId} not found`);
+    }
 
     const key = `${userId}:${orgId}`;
     const roles = this.userRoles.get(key) || [];
@@ -458,15 +485,17 @@ export class MemoryStorageAdapter implements StorageAdapter {
     }
   }
 
-  async getUserRoles(userId: string, orgId: string): Promise<any[]> {
+  async getUserRoles(userId: string, orgId: string): Promise<RoleRecord[]> {
     const key = `${userId}:${orgId}`;
     const roleIds = this.userRoles.get(key) || [];
-    return roleIds.map((id) => this.roles.get(id)).filter((r) => r !== undefined);
+    return roleIds.map((id) => this.roles.get(id)).filter((r): r is RoleRecord => r !== undefined);
   }
 
   // ===== 2FA =====
-  async createTwoFactorDevice(data: any): Promise<any> {
-    const device = {
+  async createTwoFactorDevice(
+    data: Omit<TwoFactorDevice, 'id' | 'createdAt'>
+  ): Promise<TwoFactorDevice> {
+    const device: TwoFactorDevice = {
       id: `2fa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...data,
       createdAt: new Date(),
@@ -476,20 +505,30 @@ export class MemoryStorageAdapter implements StorageAdapter {
     return device;
   }
 
-  async getTwoFactorDevice(deviceId: string): Promise<any | null> {
+  async getTwoFactorDevice(deviceId: string): Promise<TwoFactorDevice | null> {
     return this.twoFactorDevices.get(deviceId) || null;
   }
 
-  async updateTwoFactorDevice(deviceId: string, data: Partial<any>): Promise<any> {
+  async updateTwoFactorDevice(
+    deviceId: string,
+    data: Partial<TwoFactorDevice>
+  ): Promise<TwoFactorDevice> {
     const device = this.twoFactorDevices.get(deviceId);
-    if (!device) throw new Error(`2FA device ${deviceId} not found`);
+    if (!device) {
+      throw new Error(`2FA device ${deviceId} not found`);
+    }
 
-    const updated = { ...device, ...data, id: device.id, createdAt: device.createdAt };
+    const updated: TwoFactorDevice = {
+      ...device,
+      ...data,
+      id: device.id,
+      createdAt: device.createdAt,
+    };
     this.twoFactorDevices.set(deviceId, updated);
     return updated;
   }
 
-  async listTwoFactorDevices(userId: string): Promise<any[]> {
+  async listTwoFactorDevices(userId: string): Promise<TwoFactorDevice[]> {
     return Array.from(this.twoFactorDevices.values()).filter((d) => d.userId === userId);
   }
 
@@ -497,12 +536,12 @@ export class MemoryStorageAdapter implements StorageAdapter {
     this.twoFactorDevices.delete(deviceId);
   }
 
-  async createBackupCodes(userId: string, codes: any[]): Promise<any[]> {
+  async createBackupCodes(userId: string, codes: BackupCode[]): Promise<BackupCode[]> {
     this.backupCodes.set(userId, codes);
     return codes;
   }
 
-  async getBackupCodes(userId: string): Promise<any[]> {
+  async getBackupCodes(userId: string): Promise<BackupCode[]> {
     return this.backupCodes.get(userId) || [];
   }
 
@@ -515,19 +554,26 @@ export class MemoryStorageAdapter implements StorageAdapter {
     }
   }
 
-  async createTwoFactorSession(data: any): Promise<any> {
+  async createTwoFactorSession(
+    data: import('../types/2fa').TwoFactorSession
+  ): Promise<import('../types/2fa').TwoFactorSession> {
+    const sessionId = `2fa_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const session = {
-      id: `2fa_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...data,
+      id: sessionId,
       createdAt: new Date(),
     };
 
     this.twoFactorSessions.set(session.id, session);
-    return session;
+    return session as import('../types/2fa').TwoFactorSession;
   }
 
-  async getTwoFactorSession(sessionId: string): Promise<any | null> {
-    return this.twoFactorSessions.get(sessionId) || null;
+  async getTwoFactorSession(
+    sessionId: string
+  ): Promise<import('../types/2fa').TwoFactorSession | null> {
+    return (this.twoFactorSessions.get(sessionId) || null) as
+      | import('../types/2fa').TwoFactorSession
+      | null;
   }
 
   async completeTwoFactorSession(sessionId: string): Promise<void> {
@@ -535,10 +581,10 @@ export class MemoryStorageAdapter implements StorageAdapter {
   }
 
   // ===== SSO =====
-  async createSSOProvider(data: any): Promise<any> {
+  async createSSOProvider(data: unknown): Promise<unknown> {
     const provider = {
       id: `sso_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      ...data,
+      ...(data as Record<string, unknown>),
       createdAt: new Date(),
     };
 
@@ -546,15 +592,22 @@ export class MemoryStorageAdapter implements StorageAdapter {
     return provider;
   }
 
-  async getSSOProvider(providerId: string): Promise<any | null> {
+  async getSSOProvider(providerId: string): Promise<unknown | null> {
     return this.ssoProviders.get(providerId) || null;
   }
 
-  async updateSSOProvider(providerId: string, data: Partial<any>): Promise<any> {
-    const provider = this.ssoProviders.get(providerId);
-    if (!provider) throw new Error(`SSO provider ${providerId} not found`);
+  async updateSSOProvider(providerId: string, data: Partial<unknown>): Promise<unknown> {
+    const provider = this.ssoProviders.get(providerId) as Record<string, unknown> | undefined;
+    if (!provider) {
+      throw new Error(`SSO provider ${providerId} not found`);
+    }
 
-    const updated = { ...provider, ...data, id: provider.id, createdAt: provider.createdAt };
+    const updated = {
+      ...provider,
+      ...(data as Record<string, unknown>),
+      id: provider['id'],
+      createdAt: provider['createdAt'],
+    };
     this.ssoProviders.set(providerId, updated);
     return updated;
   }
@@ -563,27 +616,30 @@ export class MemoryStorageAdapter implements StorageAdapter {
     this.ssoProviders.delete(providerId);
   }
 
-  async listSSOProviders(orgId?: string): Promise<any[]> {
+  async listSSOProviders(orgId?: string): Promise<unknown[]> {
     const providers = Array.from(this.ssoProviders.values());
-    return orgId ? providers.filter((p) => p.orgId === orgId) : providers;
+    return orgId
+      ? providers.filter((p: unknown) => (p as { orgId?: string }).orgId === orgId)
+      : providers;
   }
 
-  async createSSOLink(data: any): Promise<any> {
-    const link = {
+  async createSSOLink(data: Omit<SSOLink, 'id' | 'linkedAt' | 'lastAuthAt'>): Promise<SSOLink> {
+    const link: SSOLink = {
       id: `sso_link_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...data,
-      createdAt: new Date(),
+      linkedAt: new Date(),
+      lastAuthAt: new Date(),
     };
 
     this.ssoLinks.set(link.id, link);
     return link;
   }
 
-  async getSSOLink(linkId: string): Promise<any | null> {
+  async getSSOLink(linkId: string): Promise<SSOLink | null> {
     return this.ssoLinks.get(linkId) || null;
   }
 
-  async getUserSSOLinks(userId: string): Promise<any[]> {
+  async getUserSSOLinks(userId: string): Promise<SSOLink[]> {
     return Array.from(this.ssoLinks.values()).filter((l) => l.userId === userId);
   }
 
@@ -591,18 +647,21 @@ export class MemoryStorageAdapter implements StorageAdapter {
     this.ssoLinks.delete(linkId);
   }
 
-  async createSSOSession(data: any): Promise<any> {
-    const session = {
+  async createSSOSession(
+    data: Omit<SSOSession, 'id' | 'linkedAt' | 'lastAuthAt'>
+  ): Promise<SSOSession> {
+    const session: SSOSession = {
       id: `sso_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...data,
-      createdAt: new Date(),
+      linkedAt: new Date(),
+      lastAuthAt: new Date(),
     };
 
     this.ssoSessions.set(session.id, session);
     return session;
   }
 
-  async getSSOSession(sessionId: string): Promise<any | null> {
+  async getSSOSession(sessionId: string): Promise<SSOSession | null> {
     return this.ssoSessions.get(sessionId) || null;
   }
 

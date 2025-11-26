@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Authentication Features
+
 - **AuthCore**: Main authentication engine orchestrating all auth operations
   - Email/password authentication with secure password hashing (argon2)
   - API key authentication with secure key generation and verification
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Subscription and billing integration hooks
 
 #### OAuth Authentication
+
 - **OAuth Manager**: Complete OAuth 2.0 implementation
   - Authorization code flow with PKCE support
   - Token management and refresh
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - OAuth profile mapping and user linking
 
 #### Email Authentication
+
 - **Email Auth Service**: Email-based authentication
   - User registration with email verification
   - Password reset flow
@@ -37,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Customizable email templates
 
 #### Two-Factor Authentication (2FA)
+
 - **TwoFactorAuthService**: Comprehensive 2FA implementation
   - TOTP (Time-based One-Time Password) support
   - SMS-based 2FA with multiple providers (Twilio, AWS SNS, Console)
@@ -46,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Express.js middleware for 2FA enforcement
 
 #### WebAuthn/FIDO2
+
 - **WebAuthnService**: Passwordless authentication
   - FIDO2/WebAuthn credential registration
   - Passwordless authentication flow
@@ -54,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cross-platform support (desktop, mobile, security keys)
 
 #### Single Sign-On (SSO)
+
 - **SSOService**: Enterprise SSO support
   - OIDC (OpenID Connect) provider management
   - SAML 2.0 provider support
@@ -63,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Metadata URL support for OIDC discovery
 
 #### Role-Based Access Control (RBAC)
+
 - **RBACService**: Complete RBAC implementation
   - Role creation and management
   - Permission-based access control
@@ -73,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Express.js middleware for RBAC enforcement
 
 #### Security Features
+
 - **AnomalyDetectionService**: Security monitoring
   - Brute force detection
   - Risk scoring based on multiple factors
@@ -98,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Device metadata tracking
 
 #### Governance
+
 - **AccessReviewService**: Access certification workflows
   - Access review campaign creation
   - Review assignment and tracking
@@ -106,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Review expiration handling
 
 #### Hooks/Events System
+
 - **HookManager**: Event-driven extensibility
   - User lifecycle hooks (created, updated, deleted)
   - Session hooks (created, expired, revoked)
@@ -116,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Async hook execution
 
 #### Error Handling
+
 - **Integrated @kitiumai/error**: Enterprise-grade error handling
   - RFC 7807 Problem Details support
   - Structured error codes with `auth/` prefix
@@ -126,16 +137,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Express.js error handler middleware
 
 #### Rate Limiting
+
 - **RateLimiter**: Configurable rate limiting
   - Per-user rate limiting
   - Per-IP rate limiting
   - Per-endpoint rate limiting
   - Public rate limiting
   - Configurable windows and limits
-  - Rate limit headers (X-RateLimit-*)
+  - Rate limit headers (X-RateLimit-\*)
   - Express.js middleware integration
 
 #### Framework Integrations
+
 - **Express.js**: Complete Express integration
   - Authentication middleware
   - RBAC middleware
@@ -158,6 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - BillingPortal component
 
 #### Configuration System
+
 - **Flexible Configuration**: Environment-aware configuration
   - Provider configuration (OAuth, email, SAML)
   - Storage adapter configuration
@@ -170,6 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration validation
 
 #### Plugin System
+
 - **KitiumPluginManager**: Extensible plugin architecture
   - Plugin registration and lifecycle
   - Plugin context and dependencies
@@ -177,6 +192,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Lazy plugin loading
 
 #### Lazy Loading
+
 - **Lazy Loading System**: Performance optimization
   - On-demand module loading
   - Code splitting support
@@ -184,6 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Lazy import utilities
 
 #### Utilities
+
 - **Password Utilities**: Secure password handling
   - Argon2 password hashing
   - Password strength validation
@@ -196,12 +213,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Key format validation
 
 #### Storage Adapters
+
 - **Memory Adapter**: In-memory storage for development/testing
   - Full CRUD operations
   - Transaction support
   - Query capabilities
 
 #### TypeScript Support
+
 - **Full TypeScript Coverage**: Complete type definitions
   - All APIs fully typed
   - Type-safe configuration
@@ -211,6 +230,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 #### Error Handling Migration
+
 - Migrated from custom error classes to `@kitiumai/error` API
 - All error instantiations now use object-based format with error codes
 - Added `severity` and `retryable` fields to all errors
@@ -236,4 +256,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security best practices
 - Configuration reference
 - Error code reference
-

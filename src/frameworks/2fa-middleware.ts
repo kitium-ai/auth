@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
 import { getLogger } from '@kitiumai/logger';
 import { TwoFactorAuthService } from '../twofa/service';
@@ -21,7 +22,7 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
   const logger = getLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string } }).user;
       if (!user || !user.id) {
         logger.warn('2FA required but user not authenticated', { path: req.path });
         throw new AuthenticationError({
@@ -68,7 +69,7 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
           verified: d.verified,
         })),
       });
-    } catch (error) {
+    } catch {
       res.status(401).json({ error: 'Unauthorized' });
     }
   };
@@ -129,15 +130,24 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
         maxAge,
       });
 
-      (req as any).user = {
-        ...(req as any).user,
+      (
+        req as {
+          user?: {
+            id: string;
+            twoFAVerified?: boolean;
+            twoFASessionId?: string;
+            rememberDeviceUntil?: Date;
+          };
+        }
+      ).user = {
+        ...(req as { user?: { id: string } }).user,
         twoFAVerified: true,
         twoFASessionId: twoFASession?.id,
         rememberDeviceUntil: rememberDays > 0 ? new Date(Date.now() + maxAge!) : undefined,
       };
 
       next();
-    } catch (error) {
+    } catch {
       res.status(401).json({ error: 'Failed to verify 2FA' });
     }
   };
@@ -147,9 +157,9 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
  * Initiate 2FA enrollment
  */
 export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string } }).user;
       if (!user || !user.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
@@ -197,9 +207,9 @@ export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
           name: device.name,
           verified: device.verified,
         },
-        ...(method === 'totp' && { qrCode: (device as any).qrCode }),
+        ...(method === 'totp' && { qrCode: (device as { qrCode?: string }).qrCode }),
       });
-    } catch (error) {
+    } catch {
       res.status(400).json({ error: 'Failed to initiate 2FA enrollment' });
     }
   };
@@ -209,9 +219,9 @@ export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
  * Complete 2FA enrollment
  */
 export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string } }).user;
       if (!user || !user.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
@@ -254,7 +264,7 @@ export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
           code: bc.code, // Show plaintext only once during enrollment
         })),
       });
-    } catch (error) {
+    } catch {
       res.status(400).json({ error: 'Failed to complete 2FA enrollment' });
     }
   };
@@ -264,9 +274,9 @@ export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
  * List user's 2FA devices
  */
 export function list2FADevices(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string } }).user;
       if (!user || !user.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
@@ -292,7 +302,7 @@ export function list2FADevices(options: TwoFAMiddlewareOptions) {
         backupCodesCount: status.backupCodesCount,
         backupCodesUsedCount: status.backupCodesUsedCount,
       });
-    } catch (error) {
+    } catch {
       res.status(400).json({ error: 'Failed to list 2FA devices' });
     }
   };
@@ -302,9 +312,9 @@ export function list2FADevices(options: TwoFAMiddlewareOptions) {
  * Delete a 2FA device
  */
 export function delete2FADevice(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string } }).user;
       if (!user || !user.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
@@ -339,7 +349,7 @@ export function delete2FADevice(options: TwoFAMiddlewareOptions) {
       await options.twoFAService.deleteDevice(deviceId);
 
       res.json({ success: true });
-    } catch (error) {
+    } catch {
       res.status(400).json({ error: 'Failed to delete 2FA device' });
     }
   };

@@ -1,60 +1,71 @@
+/* eslint-disable no-restricted-imports */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { SSOService } from '../sso/service';
-import { ValidationError, NotFoundError } from '../errors';
+import { ValidationError } from '../errors';
 
 // Mock storage adapter
 class MockStorageAdapter {
-  private providers: Map<string, any> = new Map();
-  private ssoLinks: Map<string, any> = new Map();
-  private ssoSessions: Map<string, any> = new Map();
+  private providers: Map<string, Record<string, unknown>> = new Map();
+  private ssoLinks: Map<string, Record<string, unknown>> = new Map();
+  private ssoSessions: Map<string, Record<string, unknown>> = new Map();
 
-  async createSSOProvider(data: any) {
-    this.providers.set(data.id, data);
+  async createSSOProvider(data: unknown): Promise<unknown> {
+    const dataRecord = data as { id: string };
+    this.providers.set(dataRecord.id, data as Record<string, unknown>);
     return data;
   }
 
-  async getSSOProvider(providerId: string) {
+  async getSSOProvider(providerId: string): Promise<unknown> {
     return this.providers.get(providerId) || null;
   }
 
-  async updateSSOProvider(providerId: string, updates: any) {
+  async updateSSOProvider(providerId: string, updates: unknown): Promise<unknown> {
     const provider = this.providers.get(providerId);
-    if (!provider) return null;
-    const updated = { ...provider, ...updates };
+    if (!provider) {
+      return null;
+    }
+    const updated = { ...provider, ...(updates as Record<string, unknown>) };
     this.providers.set(providerId, updated);
     return updated;
   }
 
-  async deleteSSOProvider(providerId: string) {
+  async deleteSSOProvider(providerId: string): Promise<void> {
     this.providers.delete(providerId);
   }
 
-  async listSSOProviders(orgId?: string) {
-    return Array.from(this.providers.values()).filter((p) => !orgId || p.orgId === orgId);
+  async listSSOProviders(orgId?: string): Promise<unknown[]> {
+    return Array.from(this.providers.values()).filter(
+      (p) => !orgId || (p as { orgId?: string }).orgId === orgId
+    );
   }
 
-  async createSSOLink(data: any) {
-    this.ssoLinks.set(data.id, data);
+  async createSSOLink(data: unknown): Promise<unknown> {
+    const dataRecord = data as { id: string };
+    this.ssoLinks.set(dataRecord.id, data as Record<string, unknown>);
     return data;
   }
 
-  async getSSOLink(linkId: string) {
+  async getSSOLink(linkId: string): Promise<unknown> {
     return this.ssoLinks.get(linkId) || null;
   }
 
-  async getUserSSOLinks(userId: string) {
-    return Array.from(this.ssoLinks.values()).filter((l) => l.userId === userId);
+  async getUserSSOLinks(userId: string): Promise<unknown[]> {
+    return Array.from(this.ssoLinks.values()).filter(
+      (l) => (l as { userId: string }).userId === userId
+    );
   }
 
-  async deleteSSOLink(linkId: string) {
+  async deleteSSOLink(linkId: string): Promise<void> {
     this.ssoLinks.delete(linkId);
   }
 
-  async createSSOSession(data: any) {
-    this.ssoSessions.set(data.id, data);
+  async createSSOSession(data: unknown): Promise<unknown> {
+    const dataRecord = data as { id: string };
+    this.ssoSessions.set(dataRecord.id, data as Record<string, unknown>);
     return data;
   }
 
-  async getSSOSession(sessionId: string) {
+  async getSSOSession(sessionId: string): Promise<unknown> {
     return this.ssoSessions.get(sessionId) || null;
   }
 }
@@ -65,12 +76,16 @@ describe('SSOService', () => {
 
   beforeEach(() => {
     mockStorage = new MockStorageAdapter();
-    ssoService = new SSOService(mockStorage as any, 'test-jwt-secret', {
-      enabled: true,
-      allowMultipleProviders: true,
-      autoProvision: true,
-      syncUserData: true,
-    });
+    ssoService = new SSOService(
+      mockStorage as unknown as import('../types').StorageAdapter,
+      'test-jwt-secret',
+      {
+        enabled: true,
+        allowMultipleProviders: true,
+        autoProvision: true,
+        syncUserData: true,
+      }
+    );
   });
 
   describe('OIDC Provider Management', () => {
@@ -91,9 +106,13 @@ describe('SSOService', () => {
     });
 
     it('should throw error when SSO is disabled', async () => {
-      const disabledService = new SSOService(mockStorage as any, 'secret', {
-        enabled: false,
-      });
+      const disabledService = new SSOService(
+        mockStorage as unknown as import('../types').StorageAdapter,
+        'secret',
+        {
+          enabled: false,
+        }
+      );
 
       await expect(
         disabledService.registerOIDCProvider({

@@ -1,3 +1,3 @@
-export function SignIn(_props: any) {
+export function signIn(_props: unknown): null {
   return null;
 }

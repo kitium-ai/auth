@@ -1,21 +1,19 @@
+/* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
 import * as speakeasy from 'speakeasy';
 import * as argon2 from 'argon2';
 import { getLogger } from '@kitiumai/logger';
-import {
+import type {
   TwoFactorConfig,
   TwoFactorDevice,
   TOTPDevice,
   SMSDevice,
   BackupCode,
   TwoFactorSession,
-  EnrollTwoFactorInput,
-  VerifyTwoFactorInput,
   TwoFactorStatus,
-  TwoFactorChallenge,
+  StorageAdapter,
 } from '../types';
 import { ValidationError, AuthenticationError } from '../errors';
-import { StorageAdapter } from '../types';
 import { SMSProvider, ConsoleSMSProvider } from './sms-provider';
 
 /**
@@ -42,11 +40,13 @@ export class TwoFactorAuthService {
   /**
    * Enable 2FA for a user
    */
-  async enableTwoFactor(userId: string): Promise<void> {
+  async enableTwoFactor(_userId: string): Promise<void> {
     if (!this.config.enabled) {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -66,6 +66,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -85,6 +87,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -93,6 +97,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/totp_not_enabled',
         message: 'TOTP is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -103,6 +109,7 @@ export class TwoFactorAuthService {
       issuer: this.config.totp?.issuer || 'Kitium',
       length: this.config.totp?.digits || 32,
     });
+    // userId is used in the secret generation above
 
     const deviceId = `totp_${nanoid()}`;
     const now = new Date();
@@ -128,6 +135,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_device_creation_not_supported',
         message: '2FA device creation is not supported',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -151,6 +160,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -159,6 +170,8 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/device_not_found',
         message: 'Device not found or invalid',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -166,6 +179,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/device_already_verified',
         message: 'Device already verified',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -182,6 +197,8 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/invalid_verification_code',
         message: 'Invalid verification code',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -204,6 +221,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -211,6 +230,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/sms_not_enabled',
         message: 'SMS is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -230,6 +251,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_device_creation_not_supported',
         message: '2FA device creation is not supported',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -244,6 +267,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -252,6 +277,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/sms_device_not_found',
         message: 'SMS device not found',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -280,6 +307,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -288,23 +317,34 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/device_not_found',
         message: 'Device not found or invalid',
+        severity: 'error',
+        retryable: false,
       });
     }
 
-    const storedCode = device.metadata?.verificationCode;
-    const expiresAt = device.metadata?.verificationCodeExpiresAt;
+    const storedCode = device.metadata?.['verificationCode'] as string | undefined;
+    const expiresAt = device.metadata?.['verificationCodeExpiresAt'] as
+      | Date
+      | string
+      | number
+      | undefined;
 
     if (!storedCode || !expiresAt) {
       throw new AuthenticationError({
         code: 'auth/no_verification_code',
         message: 'No verification code sent',
+        severity: 'error',
+        retryable: false,
       });
     }
 
-    if (new Date() > new Date(expiresAt)) {
+    const expiresAtDate = expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
+    if (new Date() > expiresAtDate) {
       throw new AuthenticationError({
         code: 'auth/verification_code_expired',
         message: 'Verification code expired',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -312,6 +352,8 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/invalid_verification_code',
         message: 'Invalid verification code',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -337,6 +379,8 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/device_not_found_or_unverified',
         message: 'Device not found or not verified',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -367,12 +411,14 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/invalid_2fa_code',
         message: 'Invalid 2FA code',
+        severity: 'error',
+        retryable: false,
       });
     }
 
     if (device.method === 'sms') {
       // Verify SMS code
-      const storedCode = device.metadata?.verificationCode;
+      const storedCode = device.metadata?.['verificationCode'];
       if (code === storedCode) {
         if (this.storage.updateTwoFactorDevice) {
           await this.storage.updateTwoFactorDevice(deviceId, {
@@ -385,6 +431,8 @@ export class TwoFactorAuthService {
       throw new AuthenticationError({
         code: 'auth/invalid_2fa_code',
         message: 'Invalid 2FA code',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -430,7 +478,9 @@ export class TwoFactorAuthService {
     const codes = await this.storage.getBackupCodes(userId);
 
     for (const backupCode of codes) {
-      if (backupCode.used) continue;
+      if (backupCode.used) {
+        continue;
+      }
 
       try {
         const isValid = await argon2.verify(backupCode.code, code);
@@ -440,7 +490,7 @@ export class TwoFactorAuthService {
           }
           return true;
         }
-      } catch (err) {
+      } catch {
         continue;
       }
     }
@@ -478,6 +528,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_device_deletion_not_supported',
         message: '2FA device deletion is not supported',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -490,11 +542,12 @@ export class TwoFactorAuthService {
   async getTwoFactorStatus(userId: string): Promise<TwoFactorStatus> {
     const devices = await this.listDevices(userId);
     const backupCodes = await (this.storage.getBackupCodes?.(userId) || Promise.resolve([]));
+    const firstDevice = devices[0];
 
     return {
       userId,
       enabled: devices.length > 0,
-      enrolledAt: devices.length > 0 ? devices[0].createdAt : undefined,
+      enrolledAt: firstDevice?.createdAt ?? undefined,
       devices,
       backupCodesCount: backupCodes.length,
       backupCodesUsedCount: backupCodes.filter((c) => c.used).length,
@@ -513,6 +566,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_not_enabled',
         message: '2FA is not enabled',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -523,6 +578,8 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/invalid_device',
         message: 'Invalid device',
+        severity: 'error',
+        retryable: false,
       });
     }
 
@@ -542,10 +599,13 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_session_creation_not_supported',
         message: '2FA session creation is not supported',
+        severity: 'error',
+        retryable: false,
       });
     }
 
-    return this.storage.createTwoFactorSession(twoFactorSession);
+    const result = await this.storage.createTwoFactorSession(twoFactorSession);
+    return result as TwoFactorSession;
   }
 
   /**
@@ -556,9 +616,23 @@ export class TwoFactorAuthService {
       throw new ValidationError({
         code: 'auth/2fa_session_completion_not_supported',
         message: '2FA session completion is not supported',
+        severity: 'error',
+        retryable: false,
       });
     }
 
     return this.storage.completeTwoFactorSession(sessionId);
   }
 }
+
+export type {
+  TwoFactorConfig,
+  TwoFactorDevice,
+  TOTPDevice,
+  SMSDevice,
+  BackupCode,
+  TwoFactorSession,
+  EnrollTwoFactorInput,
+  VerifyTwoFactorInput,
+  TwoFactorChallenge,
+} from '../types';

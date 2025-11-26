@@ -1,8 +1,15 @@
+/* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
 import { getLogger } from '@kitiumai/logger';
-import { Permission, Role, RoleRecord, PermissionCheck, RBACConfig, CustomRole } from '../types';
+import {
+  Permission,
+  Role,
+  RoleRecord,
+  PermissionCheck,
+  RBACConfig,
+  StorageAdapter,
+} from '../types';
 import { AuthorizationError, ValidationError } from '../errors';
-import { StorageAdapter } from '../types';
 
 /**
  * RBAC (Role-Based Access Control) Service
@@ -342,14 +349,14 @@ export class RBACService {
       return;
     }
 
-    const adminRole = await this.createRole(
+    await this.createRole(
       orgId,
       'Admin',
       [{ id: 'perm_1', name: 'Admin Access', resource: '*', action: '*' }],
       'Full administrative access'
     );
 
-    const memberRole = await this.createRole(
+    await this.createRole(
       orgId,
       'Member',
       [
@@ -359,7 +366,7 @@ export class RBACService {
       'Standard member access'
     );
 
-    const viewerRole = await this.createRole(
+    await this.createRole(
       orgId,
       'Viewer',
       [{ id: 'perm_4', name: 'Read Only', resource: '*', action: 'read' }],

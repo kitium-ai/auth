@@ -4,6 +4,11 @@
  */
 
 /**
+ * Authenticator transport types
+ */
+export type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'internal';
+
+/**
  * WebAuthn device/credential
  */
 export interface WebAuthnDevice {

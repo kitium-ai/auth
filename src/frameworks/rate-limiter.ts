@@ -3,6 +3,8 @@
  * Track and limit request rates
  */
 
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable no-restricted-imports */
 import { RateLimitError } from '../errors';
 
 /**
@@ -82,6 +84,20 @@ export class RateLimiter {
    */
   clear(): void {
     this.store.clear();
+  }
+
+  /**
+   * Enforce rate limit and throw when exceeded
+   */
+  enforce(key: string): void {
+    if (!this.isAllowed(key)) {
+      throw new RateLimitError({
+        code: 'auth/rate_limit_exceeded',
+        message: 'Rate limit exceeded',
+        severity: 'error',
+        retryable: false,
+      });
+    }
   }
 }
 

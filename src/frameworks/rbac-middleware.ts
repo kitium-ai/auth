@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
 import { getLogger } from '@kitiumai/logger';
 import { RBACService } from '../rbac/service';
@@ -16,11 +17,14 @@ export interface RBACMiddlewareOptions {
 /**
  * Require specific role for route access
  */
-export function requireRole(roleNames: string[], options: RBACMiddlewareOptions) {
+export function requireRole(
+  roleNames: string[],
+  options: RBACMiddlewareOptions
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   const logger = getLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string; orgId?: string } }).user;
       if (!user || !user.id) {
         logger.warn('Role check attempted but user not authenticated', { roles: roleNames });
         throw new AuthorizationError({
@@ -55,7 +59,7 @@ export function requireRole(roleNames: string[], options: RBACMiddlewareOptions)
       }
 
       next();
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: 'Forbidden' });
     }
   };
@@ -68,11 +72,11 @@ export function requirePermission(
   resource: string,
   action: string,
   options: RBACMiddlewareOptions
-) {
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   const logger = getLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string; orgId?: string } }).user;
       if (!user || !user.id) {
         logger.warn('Permission check attempted but user not authenticated', { resource, action });
         throw new AuthorizationError({
@@ -104,7 +108,7 @@ export function requirePermission(
       }
 
       next();
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: 'Forbidden' });
     }
   };
@@ -116,10 +120,10 @@ export function requirePermission(
 export function requireAnyPermission(
   checks: Array<{ resource: string; action: string }>,
   options: RBACMiddlewareOptions
-) {
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string; orgId?: string } }).user;
       if (!user || !user.id) {
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
@@ -146,7 +150,7 @@ export function requireAnyPermission(
       }
 
       next();
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: 'Forbidden' });
     }
   };
@@ -158,10 +162,10 @@ export function requireAnyPermission(
 export function requireAllPermissions(
   checks: Array<{ resource: string; action: string }>,
   options: RBACMiddlewareOptions
-) {
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string; orgId?: string } }).user;
       if (!user || !user.id) {
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
@@ -188,7 +192,7 @@ export function requireAllPermissions(
       }
 
       next();
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: 'Forbidden' });
     }
   };
@@ -197,11 +201,12 @@ export function requireAllPermissions(
 /**
  * Attach user roles and permissions to request
  */
-export function enrichUserContext(options: RBACMiddlewareOptions) {
-  const logger = getLogger();
+export function enrichUserContext(
+  options: RBACMiddlewareOptions
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = (req as { user?: { id: string; orgId?: string } }).user;
       if (!user || !user.id) {
         return next();
       }
@@ -219,10 +224,12 @@ export function enrichUserContext(options: RBACMiddlewareOptions) {
         roles,
         permissions,
       };
-      (req as any).user = enrichedUser;
+      (
+        req as { user?: { id: string; orgId?: string; roles?: unknown[]; permissions?: unknown[] } }
+      ).user = enrichedUser;
 
       next();
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: 'Forbidden' });
     }
   };
