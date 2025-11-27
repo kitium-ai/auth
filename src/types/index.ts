@@ -275,13 +275,13 @@ export interface StorageAdapter {
   deleteSSOProvider?(providerId: string): Promise<void>;
   listSSOProviders?(orgId?: string): Promise<unknown[]>;
   createSSOLink?(
-    data: Omit<import('./sso').SSOLink, 'id' | 'linkedAt' | 'lastAuthAt'>
+    data: Omit<import('./sso').SSOLink, 'id' | 'linkedAt'>
   ): Promise<import('./sso').SSOLink>;
   getSSOLink?(linkId: string): Promise<import('./sso').SSOLink | null>;
   getUserSSOLinks?(userId: string): Promise<import('./sso').SSOLink[]>;
   deleteSSOLink?(linkId: string): Promise<void>;
   createSSOSession?(
-    data: Omit<import('./sso').SSOSession, 'id' | 'linkedAt' | 'lastAuthAt'>
+    data: Omit<import('./sso').SSOSession, 'id' | 'linkedAt'>
   ): Promise<import('./sso').SSOSession>;
   getSSOSession?(sessionId: string): Promise<import('./sso').SSOSession | null>;
 

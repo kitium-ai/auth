@@ -1,6 +1,6 @@
 {
   "name": "@kitiumai/auth",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Complete authentication solution with OAuth, API keys, email, SAML, and subscription management",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

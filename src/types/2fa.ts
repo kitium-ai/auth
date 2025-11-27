@@ -29,8 +29,11 @@ export interface TwoFactorDevice {
   method: TwoFactorMethod;
   name?: string;
   verified: boolean;
+  phoneNumber?: string;
+  secret?: string;
   lastUsedAt?: Date;
   createdAt: Date;
+  updatedAt?: Date;
   metadata?: Record<string, unknown>;
 }
 

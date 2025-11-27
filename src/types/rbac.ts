@@ -49,6 +49,7 @@ export interface RoleRecord {
   description?: string;
   permissions: Permission[];
   isSystem: boolean;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }

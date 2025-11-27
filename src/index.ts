@@ -33,6 +33,7 @@ export type {
   Entitlement,
   Plan,
   Organization,
+  OrganizationMember,
   AuthEvent,
   RateLimit,
 
@@ -75,7 +76,19 @@ export type {
   OAuthLink,
   CreateUserInput,
   UpdateUserInput,
+
+  // Verification types
+  EmailVerificationToken,
 } from './types';
+
+// RBAC types
+export type { RoleRecord } from './types/rbac';
+
+// Two-factor auth types
+export type { TwoFactorDevice, BackupCode, TwoFactorSession } from './types/2fa';
+
+// SSO types
+export type { SSOLink, SSOSession } from './types/sso';
 
 // Plugin system (always loaded)
 export { KitiumPluginManager } from './plugins/manager';
@@ -557,6 +570,9 @@ export async function autoSetup(): Promise<void> {
     await lazyLoader.preload('express-auth');
   }
 }
+
+// Type exports
+export * from './types';
 
 // Default export for convenience
 // Note: no default export to avoid pulling all modules eagerly
