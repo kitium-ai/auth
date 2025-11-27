@@ -1,6 +1,6 @@
 {
   "name": "@kitiumai/auth",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Complete authentication solution with OAuth, API keys, email, SAML, and subscription management",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -9,7 +9,9 @@
     "dist/**/*",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -38,14 +40,30 @@
   },
   "keywords": [
     "auth",
-    "oauth",
     "authentication",
-    "email-auth",
+    "authorization",
+    "identity",
+    "identity-management",
+    "oauth",
+    "oauth2",
+    "oidc",
     "saml",
+    "saml2",
+    "sso",
+    "email-auth",
     "api-keys",
-    "subscription",
+    "sessions",
+    "webauthn",
+    "2fa",
+    "two-factor-auth",
+    "totp",
+    "rbac",
+    "access-control",
+    "security",
     "typescript",
-    "kitium"
+    "nodejs",
+    "kitium",
+    "kitiumai"
   ],
   "author": "KitiumAI",
   "license": "MIT",
