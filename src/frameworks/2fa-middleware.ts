@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { TwoFactorAuthService } from '../twofa/service';
 import { AuthenticationError, ValidationError } from '../errors';
 
@@ -19,7 +19,7 @@ export interface TwoFAMiddlewareOptions {
  * Require 2FA for route access
  */
 export function require2FA(options: TwoFAMiddlewareOptions) {
-  const logger = getLogger();
+  const logger = createLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as { user?: { id: string } }).user;
@@ -79,7 +79,7 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
  * Verify 2FA code during authentication
  */
 export function verify2FACode(options: TwoFAMiddlewareOptions) {
-  const logger = getLogger();
+  const logger = createLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId, deviceId, code, rememberDevice } = req.body;

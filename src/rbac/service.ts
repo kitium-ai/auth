@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import {
   Permission,
   Role,
@@ -18,7 +18,7 @@ import { AuthorizationError, ValidationError } from '../errors';
 export class RBACService {
   private storage: StorageAdapter;
   private config: RBACConfig;
-  private logger = getLogger();
+  private logger = createLogger();
 
   constructor(storage: StorageAdapter, config: RBACConfig = { enabled: false }) {
     this.storage = storage;

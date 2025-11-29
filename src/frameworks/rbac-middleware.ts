@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { RBACService } from '../rbac/service';
 import { AuthorizationError } from '../errors';
 
@@ -21,7 +21,7 @@ export function requireRole(
   roleNames: string[],
   options: RBACMiddlewareOptions
 ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  const logger = getLogger();
+  const logger = createLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as { user?: { id: string; orgId?: string } }).user;
@@ -73,7 +73,7 @@ export function requirePermission(
   action: string,
   options: RBACMiddlewareOptions
 ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  const logger = getLogger();
+  const logger = createLogger();
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as { user?: { id: string; orgId?: string } }).user;

@@ -2,7 +2,7 @@
  * Email authentication service
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { MockEmailProvider, type EmailProvider } from './providers';
 import {
   createEmailVerificationTemplate,
@@ -10,7 +10,7 @@ import {
   createLoginLinkTemplate,
 } from './templates';
 
-const logger = getLogger();
+const logger = createLogger();
 
 export interface EmailAuthServiceOptions {
   provider?: EmailProvider;

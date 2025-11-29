@@ -2,9 +2,9 @@
  * Next.js integration
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * withAuth HOC for Next.js pages

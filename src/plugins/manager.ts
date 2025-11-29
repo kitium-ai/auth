@@ -3,7 +3,7 @@
  * Manages registration and lifecycle of auth plugins
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { Plugin, PluginContext, PluginManager } from './types';
 
 /**
@@ -11,7 +11,7 @@ import { Plugin, PluginContext, PluginManager } from './types';
  */
 export class KitiumPluginManager implements PluginManager {
   private plugins = new Map<string, Plugin>();
-  private logger = getLogger();
+  private logger = createLogger();
 
   /**
    * Register a plugin

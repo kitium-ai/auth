@@ -3,9 +3,9 @@
  * Dynamically load modules on demand to reduce bundle size
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Lazy loader for managing dynamic imports

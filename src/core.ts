@@ -3,13 +3,13 @@
  * Orchestrates all authentication operations
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { AuthConfig, validateConfig } from './config';
 import { ValidationError, AuthenticationError } from './errors';
 import { hashPassword, verifyPassword } from './password';
 import { generateApiKey, hashApiKey, verifyApiKey } from './utils';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * User record
@@ -52,7 +52,7 @@ export interface ApiKeyRecord {
  */
 export class AuthCore {
   private config: AuthConfig;
-  private logger = getLogger();
+  private logger = createLogger();
 
   constructor(config: AuthConfig) {
     const validation = validateConfig(config);

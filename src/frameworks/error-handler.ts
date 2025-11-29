@@ -5,11 +5,11 @@
 
 /* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { getStatusCode, toAuthError, NotFoundError } from '../errors';
 import { logError, problemDetailsFrom } from '@kitiumai/error';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Global error handler middleware

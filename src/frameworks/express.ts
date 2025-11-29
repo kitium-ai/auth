@@ -3,9 +3,9 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Express auth middleware

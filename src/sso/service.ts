@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import {
   SSOConfig,
   OIDCProvider,
@@ -22,7 +22,7 @@ export class SSOService {
   private storage: StorageAdapter;
   private config: SSOConfig;
   private jwtSecret: string;
-  private logger = getLogger();
+  private logger = createLogger();
 
   constructor(storage: StorageAdapter, jwtSecret: string, config: SSOConfig = { enabled: false }) {
     this.storage = storage;

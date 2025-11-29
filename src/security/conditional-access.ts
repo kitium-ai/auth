@@ -3,10 +3,10 @@
  * Location, device, time-based access control
  */
 
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 // ValidationError is available but not directly used in this file
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Conditional access policy type

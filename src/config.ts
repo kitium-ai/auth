@@ -3,7 +3,7 @@
  * Environment-aware configuration for authentication
  */
 
-import { ValidationError } from './errors';
+import { ValidationError } from '@kitiumai/error';
 
 /**
  * Auth provider configuration

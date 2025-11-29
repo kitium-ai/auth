@@ -5,11 +5,11 @@
 
 /* eslint-disable no-restricted-imports */
 import { Request, Response, NextFunction } from 'express';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { RateLimiter, generateRateLimitKey, generateRateLimitHeaders } from './rate-limiter';
 import { RateLimitError } from '../errors';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Create rate limit middleware

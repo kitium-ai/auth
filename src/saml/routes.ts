@@ -1,6 +1,6 @@
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
-const logger = getLogger();
+const logger = createLogger();
 
 export function createSAMLRoutes(): unknown[] {
   return [];

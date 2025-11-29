@@ -4,10 +4,10 @@
  */
 
 import { nanoid } from 'nanoid';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { HookManager, HookRegistration, HookEventType, HookContext, HookHandler } from './types';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Hook Manager implementation

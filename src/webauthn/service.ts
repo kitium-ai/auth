@@ -6,7 +6,7 @@
 /* eslint-disable no-restricted-imports */
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
 import { ValidationError, AuthenticationError } from '../errors';
 import {
@@ -19,7 +19,7 @@ import {
   AuthenticatorTransport,
 } from './types';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * WebAuthn Service

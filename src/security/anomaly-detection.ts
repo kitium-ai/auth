@@ -4,10 +4,10 @@
  */
 
 /* eslint-disable no-restricted-imports */
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Anomaly detection configuration

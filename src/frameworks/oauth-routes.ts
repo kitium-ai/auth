@@ -3,7 +3,7 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import https from 'node:https';
 import { Buffer } from 'node:buffer';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import type { AuthProvider } from '../config';
 import { OAUTH_PROVIDER_PRESETS } from '../providers/oauth-presets';
 import { OAuthManager, PKCEGenerator, type OAuthTokenResponse } from '../oauth';
@@ -32,7 +32,7 @@ interface PendingState {
   codeVerifier: string;
 }
 
-const logger = getLogger();
+const logger = createLogger();
 
 export async function createOAuthRoutes(options: CreateOAuthRoutesOptions): Promise<Router> {
   const providers = normalizeProviders(options.providers, options.defaultRedirectUri);

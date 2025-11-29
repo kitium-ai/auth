@@ -3,7 +3,7 @@ import https from 'node:https';
 import path from 'node:path';
 import { Buffer } from 'node:buffer';
 import fs from 'fs-extra';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
 export interface EmailProvider {
   send(to: string, subject: string, html: string): Promise<void>;
@@ -27,7 +27,7 @@ export interface EmailProviderFactoryConfig {
   [key: string]: unknown;
 }
 
-const logger = getLogger();
+const logger = createLogger();
 
 abstract class BaseEmailProvider implements EmailProvider {
   protected constructor(private readonly providerName: string) {}

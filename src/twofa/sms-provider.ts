@@ -1,4 +1,4 @@
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { isString } from '@kitiumai/utils-ts';
 
 /**
@@ -28,7 +28,7 @@ export interface SMSProvider {
  * For testing and development - logs SMS to console instead of sending
  */
 export class ConsoleSMSProvider implements SMSProvider {
-  private logger = getLogger();
+  private logger = createLogger();
 
   async sendSMS(phoneNumber: string, message: string): Promise<void> {
     this.logger.info(`[SMS] To: ${phoneNumber}`);

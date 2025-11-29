@@ -2,7 +2,7 @@
 import { nanoid } from 'nanoid';
 import * as speakeasy from 'speakeasy';
 import * as argon2 from 'argon2';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import type {
   TwoFactorConfig,
   TwoFactorDevice,
@@ -24,7 +24,7 @@ export class TwoFactorAuthService {
   private storage: StorageAdapter;
   private config: TwoFactorConfig;
   private smsProvider: SMSProvider;
-  private logger = getLogger();
+  private logger = createLogger();
 
   constructor(
     storage: StorageAdapter,

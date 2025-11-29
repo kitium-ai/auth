@@ -1,6 +1,6 @@
 import express, { type Express, type Router } from 'express';
 import type { Server } from 'node:http';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 
 export interface HttpAuthServiceOptions {
   routes?: Router[];
@@ -10,7 +10,7 @@ export interface HttpAuthServiceOptions {
 export class HttpAuthService {
   private readonly app: Express;
   private server?: Server;
-  private readonly logger = getLogger();
+  private readonly logger = createLogger();
 
   constructor(
     private readonly port: number,

@@ -5,11 +5,11 @@
 
 /* eslint-disable no-restricted-imports */
 import { nanoid } from 'nanoid';
-import { getLogger } from '@kitiumai/logger';
+import { createLogger } from '@kitiumai/logger';
 import { StorageAdapter } from '../types';
 import { ValidationError, AuthorizationError } from '../errors';
 
-const logger = getLogger();
+const logger = createLogger();
 
 /**
  * Access review status
