@@ -1,6 +1,6 @@
 {
   "name": "@kitiumai/auth",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "Enterprise-grade authentication solution with OAuth2, API keys, email verification, SAML2, SSO, WebAuthn, 2FA, RBAC, and subscription management",
   "type": "module",
   "sideEffects": false,
@@ -27,6 +27,16 @@
       "types": "./dist/config.d.ts",
       "import": "./dist/config.mjs",
       "require": "./dist/config.js"
+    },
+    "./lazy": {
+      "types": "./dist/lazy.d.ts",
+      "import": "./dist/lazy.mjs",
+      "require": "./dist/lazy.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.js"
     }
   },
   "files": [
@@ -61,6 +71,13 @@
     "publish:dry-run": "pnpm publish --access public --no-git-checks --dry-run --registry https://registry.npmjs.org",
     "publish:dry-run:token": "pnpm run publish:setup && pnpm publish --access public --no-git-checks --dry-run --registry https://registry.npmjs.org",
     "release": "pnpm version && pnpm install --lockfile-only"
+  },
+  "tsup": {
+    "entry": ["src/index.ts", "src/lazy.ts", "src/utils.ts"],
+    "format": ["cjs", "esm"],
+    "dts": true,
+    "sourcemap": false,
+    "outDir": "dist"
   },
   "keywords": [
     "auth",
@@ -147,6 +164,7 @@
     "@kitiumai/scripts": "^1.0.0",
     "@kitiumai/vitest-helpers": "^2.0.0",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.6.0",
     "@types/react": "^18.2.0",
     "@types/speakeasy": "^2.0.9",

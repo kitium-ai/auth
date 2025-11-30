@@ -54,7 +54,7 @@ export class TokenGovernance {
   }
 
   rotateKeys(now: Date = new Date()): JwksKey {
-    const latest = this.config.jwks[this.config.jwks.length - 1];
+    const latest = this.config.jwks[this.config.jwks.length - 1]!;
     const ageDays = (now.getTime() - latest.createdAt.getTime()) / (1000 * 60 * 60 * 24);
     if (ageDays < this.config.rotation.rotationDays) {
       return latest;
@@ -84,7 +84,7 @@ export class TokenGovernance {
       }
       return match;
     }
-    return this.config.jwks[this.config.jwks.length - 1];
+    return this.config.jwks[this.config.jwks.length - 1]!;
   }
 
   issueToken(subject: string, claims: Record<string, unknown> = {}): TokenIssueResult {
@@ -150,7 +150,11 @@ export function createTokenGovernance(config: Partial<TokenGovernanceConfig>): T
   const defaultKey: JwksKey = {
     kid: crypto.randomUUID(),
     algorithm: 'RS256',
-    ...crypto.generateKeyPairSync('rsa', { modulusLength: 2048, publicKeyEncoding: { format: 'pem', type: 'pkcs1' }, privateKeyEncoding: { format: 'pem', type: 'pkcs1' } }),
+    ...crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: { format: 'pem', type: 'pkcs1' },
+      privateKeyEncoding: { format: 'pem', type: 'pkcs1' },
+    }),
     publicKey: '',
     privateKey: '',
     createdAt: now,

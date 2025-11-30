@@ -35,13 +35,16 @@ export class ProvisioningService {
   private users = new Map<string, ScimUser>();
   private logger = createLogger();
 
-  async upsertScimUser(payload: Omit<ScimUser, 'id'> & { id?: string }): Promise<ScimProvisioningResult> {
+  async upsertScimUser(
+    payload: Omit<ScimUser, 'id'> & { id?: string }
+  ): Promise<ScimProvisioningResult> {
     const id = payload.id ?? nanoid();
     const next: ScimUser = { ...payload, id };
     const exists = this.users.has(id);
     this.users.set(id, next);
 
-    const status: ScimProvisioningResult['status'] = payload.active === false ? 'deactivated' : exists ? 'updated' : 'created';
+    const status: ScimProvisioningResult['status'] =
+      payload.active === false ? 'deactivated' : exists ? 'updated' : 'created';
     this.logger.info('SCIM user upserted', { id, status });
     return { id, status, timestamp: new Date(), payload: next };
   }

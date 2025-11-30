@@ -97,7 +97,14 @@ export {
   InMemoryAuditExporter,
   createDefaultAuditService,
 } from './observability/audit';
-export type { AuditEvent, AuditExporter, AuditOptions, AuditSeverity, AuditCategory, MetricsSink } from './observability/audit';
+export type {
+  AuditEvent,
+  AuditExporter,
+  AuditOptions,
+  AuditSeverity,
+  AuditCategory,
+  MetricsSink,
+} from './observability/audit';
 export { TokenGovernance, createTokenGovernance } from './security/token-governance';
 export type {
   JwksKey,
@@ -107,13 +114,15 @@ export type {
   TokenIssueResult,
 } from './security/token-governance';
 export { ProvisioningService } from './lifecycle/provisioning';
-export type { JitProfile, JitResult, ScimProvisioningResult, ScimUser } from './lifecycle/provisioning';
+export type {
+  JitProfile,
+  JitResult,
+  ScimProvisioningResult,
+  ScimUser,
+} from './lifecycle/provisioning';
 export { TenantRegistry } from './multitenancy/tenant-registry';
 export type { Tenant, TenantRegionPolicy } from './multitenancy/tenant-registry';
-export {
-  defaultComplianceProfile,
-  validatePasswordAgainstPolicy,
-} from './compliance/policies';
+export { defaultComplianceProfile, validatePasswordAgainstPolicy } from './compliance/policies';
 export type {
   ComplianceProfile,
   PasswordPolicy,

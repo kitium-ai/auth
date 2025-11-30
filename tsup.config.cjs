@@ -1,7 +1,7 @@
 const { defineConfig } = require('tsup');
 
 module.exports = defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/lazy.ts', 'src/utils.ts'],
   format: ['cjs', 'esm'],
   dts: true,
   sourcemap: true,
