@@ -90,6 +90,39 @@ export type { TwoFactorDevice, BackupCode, TwoFactorSession } from './types/2fa'
 // SSO types
 export type { SSOLink, SSOSession } from './types/sso';
 
+// Observability and governance
+export {
+  AuditService,
+  ConsoleAuditExporter,
+  InMemoryAuditExporter,
+  createDefaultAuditService,
+} from './observability/audit';
+export type { AuditEvent, AuditExporter, AuditOptions, AuditSeverity, AuditCategory, MetricsSink } from './observability/audit';
+export { TokenGovernance, createTokenGovernance } from './security/token-governance';
+export type {
+  JwksKey,
+  KeyRotationPolicy,
+  TokenFormat,
+  TokenGovernanceConfig,
+  TokenIssueResult,
+} from './security/token-governance';
+export { ProvisioningService } from './lifecycle/provisioning';
+export type { JitProfile, JitResult, ScimProvisioningResult, ScimUser } from './lifecycle/provisioning';
+export { TenantRegistry } from './multitenancy/tenant-registry';
+export type { Tenant, TenantRegionPolicy } from './multitenancy/tenant-registry';
+export {
+  defaultComplianceProfile,
+  validatePasswordAgainstPolicy,
+} from './compliance/policies';
+export type {
+  ComplianceProfile,
+  PasswordPolicy,
+  DataRetentionPolicy,
+  CertificationAlignment,
+} from './compliance/policies';
+export { defaultRunbooks } from './operational/runbooks';
+export type { Runbook, RunbookStep } from './operational/runbooks';
+
 // Plugin system (always loaded)
 export { KitiumPluginManager } from './plugins/manager';
 export type { Plugin, PluginManager, PluginContext } from './plugins/types';

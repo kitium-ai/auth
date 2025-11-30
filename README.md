@@ -19,6 +19,7 @@ Complete authentication solution with OAuth, API keys, email, SAML, 2FA, WebAuth
 - 📦 **Pre-configured OAuth Providers**: Google, GitHub, Microsoft, Facebook, Apple, Twitter, Discord, LinkedIn
 - 🛠️ **TypeScript**: Full TypeScript support with comprehensive types
 - 📋 **RFC 7807**: Problem Details for HTTP APIs error format
+- 🧭 **Enterprise Readiness**: JWKS-backed token governance, SIEM-ready audit events, SCIM/JIT provisioning, tenant isolation, and compliance presets
 
 ## Installation
 
@@ -125,6 +126,84 @@ const result = await auth.handleOAuthCallback('google', {
   code: 'authorization-code',
   state: 'random-state-string',
 });
+```
+
+### Enterprise controls
+
+**Signed tokens with JWKS rotation**
+
+```typescript
+import { createTokenGovernance } from '@kitiumai/auth';
+
+const tokenGovernance = createTokenGovernance({
+  format: {
+    audience: 'my-app',
+    issuer: 'https://auth.my-app.com',
+    expirationSeconds: 3600,
+    cookieFlags: { httpOnly: true, sameSite: 'lax', secure: true },
+  },
+  rotation: { rotationDays: 30, overlapSeconds: 60, enforceKid: true },
+});
+
+const { token, kid } = tokenGovernance.issueToken('user-123', { roles: ['admin'] });
+tokenGovernance.verifyToken(token);
+```
+
+**Audit pipeline with SIEM export and metrics hooks**
+
+```typescript
+import { AuditService, ConsoleAuditExporter } from '@kitiumai/auth';
+
+const audit = new AuditService([new ConsoleAuditExporter()], { redactionFields: ['password'] }, {
+  record: async (metric, value, tags) => console.log(metric, value, tags),
+});
+
+await audit.record({
+  id: 'evt-1',
+  category: 'auth',
+  actor: 'user-123',
+  action: 'login',
+  severity: 'info',
+  timestamp: new Date(),
+  metadata: { ip: '192.168.1.1' },
+});
+```
+
+**SCIM and JIT provisioning**
+
+```typescript
+import { ProvisioningService } from '@kitiumai/auth';
+
+const provisioning = new ProvisioningService();
+await provisioning.upsertScimUser({
+  userName: 'jane.doe',
+  active: true,
+  emails: [{ value: 'jane@example.com', primary: true }],
+});
+
+await provisioning.jitProvision({ email: 'saml-user@example.com', provider: 'saml' });
+```
+
+**Tenant isolation and residency**
+
+```typescript
+import { TenantRegistry } from '@kitiumai/auth';
+
+const tenants = new TenantRegistry();
+const tenant = tenants.createTenant('Acme', { region: 'eu-west-1', residencyRequired: true, encryptionKeyId: 'kms-eu' });
+tenants.setFeatureFlag(tenant.id, 'adaptive-mfa', true);
+```
+
+**Compliance and credential policy enforcement**
+
+```typescript
+import { defaultComplianceProfile, validatePasswordAgainstPolicy } from '@kitiumai/auth';
+
+const compliance = defaultComplianceProfile();
+const violations = validatePasswordAgainstPolicy('weak', compliance.password);
+if (violations.length) {
+  throw new Error(`Password rejected: ${violations.join(', ')}`);
+}
 ```
 
 ### Two-Factor Authentication
