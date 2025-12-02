@@ -1,44 +1,45 @@
-/* eslint-disable no-restricted-imports */
 /**
  * Email authentication routes
  */
 
-import { Router, type Request, type Response, type NextFunction } from 'express';
-import type { AuthCore, SessionRecord, UserRecord } from '../core';
+import { type NextFunction, type Request, type Response, Router } from 'express';
+
 import { AuthenticationError, ValidationError } from '../errors';
 import { EmailAuthService } from './service';
-import { EmailVerificationManager, VerificationTokenRecord } from './verification';
+import type { VerificationTokenRecord } from './verification';
+import { EmailVerificationManager } from './verification';
+import type { AuthCore, SessionRecord, UserRecord } from '../core';
 
-export interface EmailRegistrationRequest {
+export type EmailRegistrationRequest = {
   email: string;
   password: string;
-}
+};
 
-export interface EmailLoginRequest {
+export type EmailLoginRequest = {
   email: string;
   password: string;
-}
+};
 
-export interface EmailResetRequest {
+export type EmailResetRequest = {
   email: string;
-}
+};
 
-export interface EmailPasswordResetRequest {
+export type EmailPasswordResetRequest = {
   token: string;
   password: string;
-}
+};
 
-export interface EmailMagicLinkRequest {
+export type EmailMagicLinkRequest = {
   email: string;
-}
+};
 
-export interface EmailRouteControllerOptions {
+export type EmailRouteControllerOptions = {
   auth: AuthCore;
   emailService?: EmailAuthService;
   verificationManager?: EmailVerificationManager;
-}
+};
 
-export interface EmailRouteController {
+export type EmailRouteController = {
   register(
     payload: EmailRegistrationRequest
   ): Promise<{ user: UserRecord; verificationLink: string }>;
@@ -47,11 +48,11 @@ export interface EmailRouteController {
   resetPassword(payload: EmailPasswordResetRequest): Promise<{ email?: string }>;
   sendMagicLink(payload: EmailMagicLinkRequest): Promise<{ loginLink: string }>;
   verifyToken(token: string): Promise<VerificationTokenRecord>;
-}
+};
 
-export interface CreateEmailRoutesOptions extends EmailRouteControllerOptions {
+export type CreateEmailRoutesOptions = {
   basePath?: string;
-}
+} & EmailRouteControllerOptions;
 
 export function createEmailRouteController(
   options: EmailRouteControllerOptions
@@ -73,8 +74,30 @@ export function createEmailRouteController(
 
     async login(payload) {
       assertEmailPayload(payload);
-      const user = await auth.authenticateUser(payload.email, payload.password);
-      const session = await auth.createSession(user.id);
+      const userResult = await auth.authenticateUser(payload.email, payload.password);
+      if (!userResult.ok) {
+        throw new AuthenticationError({
+          code: 'auth/invalid_credentials',
+          message: userResult.error.message,
+          severity: 'error',
+          retryable: false,
+          cause: userResult.error,
+        });
+      }
+      const user = userResult.value;
+
+      const sessionResult = await auth.createSession(user.id);
+      if (!sessionResult.ok) {
+        throw new AuthenticationError({
+          code: 'auth/session_creation_failed',
+          message: sessionResult.error.message,
+          severity: 'error',
+          retryable: false,
+          cause: sessionResult.error,
+        });
+      }
+      const session = sessionResult.value;
+
       return { user, session };
     },
 
@@ -154,48 +177,48 @@ export async function createEmailRoutes(options: CreateEmailRoutesOptions): Prom
 
   router.post(
     `${basePath}/register`,
-    wrap(async (req, res) => {
-      const result = await controller.register(req.body as EmailRegistrationRequest);
+    wrap(async (request, res) => {
+      const result = await controller.register(request.body as EmailRegistrationRequest);
       res.status(201).json(result);
     })
   );
 
   router.post(
     `${basePath}/login`,
-    wrap(async (req, res) => {
-      const result = await controller.login(req.body as EmailLoginRequest);
+    wrap(async (request, res) => {
+      const result = await controller.login(request.body as EmailLoginRequest);
       res.status(200).json(result);
     })
   );
 
   router.post(
     `${basePath}/forgot-password`,
-    wrap(async (req, res) => {
-      const result = await controller.requestPasswordReset(req.body as EmailResetRequest);
+    wrap(async (request, res) => {
+      const result = await controller.requestPasswordReset(request.body as EmailResetRequest);
       res.status(200).json(result);
     })
   );
 
   router.post(
     `${basePath}/reset-password`,
-    wrap(async (req, res) => {
-      const result = await controller.resetPassword(req.body as EmailPasswordResetRequest);
+    wrap(async (request, res) => {
+      const result = await controller.resetPassword(request.body as EmailPasswordResetRequest);
       res.status(200).json(result);
     })
   );
 
   router.post(
     `${basePath}/magic-link`,
-    wrap(async (req, res) => {
-      const result = await controller.sendMagicLink(req.body as EmailMagicLinkRequest);
+    wrap(async (request, res) => {
+      const result = await controller.sendMagicLink(request.body as EmailMagicLinkRequest);
       res.status(200).json(result);
     })
   );
 
   router.get(
     `${basePath}/verify/:token`,
-    wrap(async (req, res) => {
-      const token = req.params['token'];
+    wrap(async (request, res) => {
+      const token = request.params['token'];
       if (!token) {
         res.status(400).json({ error: 'Verification token is required' });
         return;
@@ -208,9 +231,9 @@ export async function createEmailRoutes(options: CreateEmailRoutesOptions): Prom
   return router;
 }
 
-function wrap(handler: (req: Request, res: Response) => Promise<void>) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    handler(req, res).catch(next);
+function wrap(handler: (request: Request, res: Response) => Promise<void>) {
+  return (request: Request, res: Response, next: NextFunction): void => {
+    handler(request, res).catch(next);
   };
 }
 

@@ -5,7 +5,7 @@ import { isString } from '@kitiumai/utils-ts';
  * SMS Provider Interface
  * Abstract interface for sending SMS messages for 2FA
  */
-export interface SMSProvider {
+export type SMSProvider = {
   /**
    * Send an SMS message to a phone number
    * @param phoneNumber - The recipient's phone number (E.164 format recommended)
@@ -21,18 +21,19 @@ export interface SMSProvider {
    * @returns Promise that resolves when the code is sent
    */
   sendVerificationCode(phoneNumber: string, code: string): Promise<void>;
-}
+};
 
 /**
  * Console SMS Provider
  * For testing and development - logs SMS to console instead of sending
  */
 export class ConsoleSMSProvider implements SMSProvider {
-  private logger = createLogger();
+  private readonly logger = createLogger();
 
   async sendSMS(phoneNumber: string, message: string): Promise<void> {
     this.logger.info(`[SMS] To: ${phoneNumber}`);
     this.logger.info(`[SMS] Message: ${message}`);
+    await Promise.resolve();
   }
 
   async sendVerificationCode(phoneNumber: string, code: string): Promise<void> {
@@ -46,9 +47,9 @@ export class ConsoleSMSProvider implements SMSProvider {
  * Production-ready SMS provider using Twilio API
  */
 export class TwilioSMSProvider implements SMSProvider {
-  private accountSid: string;
-  private authToken: string;
-  private fromNumber: string;
+  private readonly accountSid: string;
+  private readonly authToken: string;
+  private readonly fromNumber: string;
 
   constructor(accountSid: string, authToken: string, fromNumber: string) {
     this.accountSid = accountSid;
@@ -68,20 +69,18 @@ export class TwilioSMSProvider implements SMSProvider {
     const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');
 
     const body = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       To: phoneNumber,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       From: this.fromNumber,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       Body: message,
     });
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         Authorization: `Basic ${auth}`,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: body.toString(),
@@ -104,9 +103,10 @@ export class TwilioSMSProvider implements SMSProvider {
  * Production-ready SMS provider using AWS SNS
  */
 export class AWSSNSSMSProvider implements SMSProvider {
-  private region: string;
-  private accessKeyId: string;
-  private _secretAccessKey: string;
+  private readonly region: string;
+  private readonly accessKeyId: string;
+  private readonly _secretAccessKey: string;
+  private readonly logger = createLogger();
 
   constructor(region: string, accessKeyId: string, secretAccessKey: string) {
     this.region = region;
@@ -122,8 +122,9 @@ export class AWSSNSSMSProvider implements SMSProvider {
   async sendSMS(phoneNumber: string, message: string): Promise<void> {
     // In a real implementation, this would use the AWS SDK
     // This is a placeholder for the AWS SNS publish operation
+    await Promise.resolve();
     // Log the parameters for debugging
-    console.log('AWS SNS SMS would be sent:', {
+    this.logger.info('AWS SNS SMS would be sent', {
       region: this.region,
       accessKeyId: this.accessKeyId ? `${this.accessKeyId.substring(0, 4)}...` : 'missing',
       phoneNumber,
@@ -145,10 +146,10 @@ export class AWSSNSSMSProvider implements SMSProvider {
  * Allows users to provide their own SMS sending implementation
  */
 export class CustomSMSProvider implements SMSProvider {
-  private sendFn: (phoneNumber: string, message: string) => Promise<void>;
+  private readonly sendFn: (phoneNumber: string, message: string) => Promise<void>;
 
-  constructor(sendFn: (phoneNumber: string, message: string) => Promise<void>) {
-    this.sendFn = sendFn;
+  constructor(sendFunction: (phoneNumber: string, message: string) => Promise<void>) {
+    this.sendFn = sendFunction;
   }
 
   async sendSMS(phoneNumber: string, message: string): Promise<void> {

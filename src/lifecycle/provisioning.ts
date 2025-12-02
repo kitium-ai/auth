@@ -1,39 +1,39 @@
-import { nanoid } from 'nanoid';
 import { createLogger } from '@kitiumai/logger';
+import { nanoid } from 'nanoid';
 
-export interface ScimUser {
+export type ScimUser = {
   id: string;
   userName: string;
   active: boolean;
-  emails: { value: string; primary?: boolean }[];
+  emails: Array<{ value: string; primary?: boolean }>;
   name?: { givenName?: string; familyName?: string };
   groups?: string[];
   meta?: Record<string, unknown>;
-}
+};
 
-export interface ScimProvisioningResult {
+export type ScimProvisioningResult = {
   id: string;
   status: 'created' | 'updated' | 'deactivated';
   timestamp: Date;
   payload: ScimUser;
-}
+};
 
-export interface JitProfile {
+export type JitProfile = {
   email: string;
   provider: 'saml' | 'oidc';
   attributes?: Record<string, unknown>;
-}
+};
 
-export interface JitResult {
+export type JitResult = {
   userId: string;
   organizationId?: string;
   created: boolean;
   mappedAttributes?: Record<string, unknown>;
-}
+};
 
 export class ProvisioningService {
-  private users = new Map<string, ScimUser>();
-  private logger = createLogger();
+  private readonly users = new Map<string, ScimUser>();
+  private readonly logger = createLogger();
 
   async upsertScimUser(
     payload: Omit<ScimUser, 'id'> & { id?: string }

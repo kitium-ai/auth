@@ -1,35 +1,39 @@
 // Core types for the authentication system
 
+import type { BackupCode, TwoFactorDevice, TwoFactorSession } from './2fa';
+import type { RoleRecord } from './rbac';
+import type { SSOLink, SSOSession } from './sso';
+
 export type Scope = string;
 
-export interface Principal {
+export type Principal = {
   id: string;
   type: 'user' | 'org' | 'service';
   orgId?: string;
   plan?: string;
   entitlements: Scope[];
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface IssueApiKeyInput {
+export type IssueApiKeyInput = {
   principalId: string;
   scopes: Scope[];
   metadata?: Record<string, string>;
   expiresAt?: Date;
   name?: string;
   prefix?: string;
-}
+};
 
-export interface IssueApiKeyResult {
+export type IssueApiKeyResult = {
   id: string;
   key: string;
   prefix: string;
   lastFour: string;
   expiresAt?: Date;
   createdAt: Date;
-}
+};
 
-export interface VerifyApiKeyResult {
+export type VerifyApiKeyResult = {
   valid: boolean;
   principalId?: string;
   scopes?: Scope[];
@@ -41,9 +45,9 @@ export interface VerifyApiKeyResult {
   };
   keyId?: string;
   expiresAt?: Date;
-}
+};
 
-export interface Session {
+export type Session = {
   id: string;
   userId: string;
   orgId?: string;
@@ -52,23 +56,23 @@ export interface Session {
   expiresAt: Date;
   createdAt: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface Entitlement {
+export type Entitlement = {
   scope: Scope;
   plan: string;
   description?: string;
-}
+};
 
-export interface Plan {
+export type Plan = {
   id: string;
   name: string;
   entitlements: Scope[];
   seats?: number;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface Organization {
+export type Organization = {
   id: string;
   name: string;
   plan: string;
@@ -77,30 +81,30 @@ export interface Organization {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface OrganizationMember {
+export type OrganizationMember = {
   userId: string;
   role: 'owner' | 'admin' | 'member';
   joinedAt: Date;
-}
+};
 
-export interface AuthEvent {
+export type AuthEvent = {
   type: string;
   principalId: string;
   orgId?: string;
   data: Record<string, unknown>;
   timestamp: Date;
-}
+};
 
-export interface RateLimit {
+export type RateLimit = {
   limit: number;
   periodSec: number;
   remaining?: number;
   resetAt?: Date;
-}
+};
 
-export interface AuthConfig {
+export type AuthConfig = {
   appUrl: string;
   providers: AuthProvider[];
   storage: StorageConfig;
@@ -109,9 +113,9 @@ export interface AuthConfig {
   sessions: SessionConfig;
   orgs?: OrganizationConfig;
   events?: EventConfig;
-}
+};
 
-export interface AuthProvider {
+export type AuthProvider = {
   id: string;
   type: 'oauth' | 'email' | 'saml';
   clientId?: string;
@@ -119,29 +123,29 @@ export interface AuthProvider {
   redirectUri?: string;
   scopes?: string[];
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface StorageConfig {
+export type StorageConfig = {
   driver: 'postgres' | 'mysql' | 'sqlite' | 'memory';
   url?: string;
   options?: Record<string, unknown>;
-}
+};
 
-export interface BillingConfig {
+export type BillingConfig = {
   driver: 'stripe' | 'paddle' | 'custom';
   secretKey?: string;
   webhookSecret?: string;
   products: Record<string, BillingProduct>;
-}
+};
 
-export interface BillingProduct {
+export type BillingProduct = {
   plan: string;
   entitlements: Scope[];
   seats?: number;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface ApiKeyConfig {
+export type ApiKeyConfig = {
   prefix: string;
   hash: {
     algo: 'argon2id' | 'bcrypt' | 'scrypt';
@@ -150,30 +154,30 @@ export interface ApiKeyConfig {
     parallelism?: number;
   };
   defaultExpiry?: number; // seconds
-}
+};
 
-export interface SessionConfig {
+export type SessionConfig = {
   cookieName: string;
   ttlSeconds: number;
   secure?: boolean;
   httpOnly?: boolean;
   sameSite?: 'strict' | 'lax' | 'none';
-}
+};
 
-export interface OrganizationConfig {
+export type OrganizationConfig = {
   enabled: boolean;
   defaultRole: 'owner' | 'admin' | 'member';
   maxSeats?: number;
-}
+};
 
-export interface EventConfig {
+export type EventConfig = {
   webhookSecret?: string;
   webhookUrl?: string;
   events: string[];
-}
+};
 
 // Adapter interfaces
-export interface StorageAdapter {
+export type StorageAdapter = {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
 
@@ -227,45 +231,29 @@ export interface StorageAdapter {
   deleteTenantSAMLConfig?(tenantId: string): Promise<void>;
 
   // RBAC (optional)
-  createRole?(
-    data: Omit<import('./rbac').RoleRecord, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<import('./rbac').RoleRecord>;
-  getRole?(roleId: string): Promise<import('./rbac').RoleRecord | null>;
-  updateRole?(
-    roleId: string,
-    data: Partial<import('./rbac').RoleRecord>
-  ): Promise<import('./rbac').RoleRecord>;
+  createRole?(data: Omit<RoleRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<RoleRecord>;
+  getRole?(roleId: string): Promise<RoleRecord | null>;
+  updateRole?(roleId: string, data: Partial<RoleRecord>): Promise<RoleRecord>;
   deleteRole?(roleId: string): Promise<void>;
-  listRoles?(orgId: string): Promise<import('./rbac').RoleRecord[]>;
-  assignRoleToUser?(
-    userId: string,
-    roleId: string,
-    orgId: string
-  ): Promise<import('./rbac').RoleRecord>;
+  listRoles?(orgId: string): Promise<RoleRecord[]>;
+  assignRoleToUser?(userId: string, roleId: string, orgId: string): Promise<RoleRecord>;
   revokeRoleFromUser?(userId: string, roleId: string, orgId: string): Promise<void>;
-  getUserRoles?(userId: string, orgId: string): Promise<import('./rbac').RoleRecord[]>;
+  getUserRoles?(userId: string, orgId: string): Promise<RoleRecord[]>;
 
   // 2FA (optional)
-  createTwoFactorDevice?(
-    data: Omit<import('./2fa').TwoFactorDevice, 'id' | 'createdAt'>
-  ): Promise<import('./2fa').TwoFactorDevice>;
-  getTwoFactorDevice?(deviceId: string): Promise<import('./2fa').TwoFactorDevice | null>;
+  createTwoFactorDevice?(data: Omit<TwoFactorDevice, 'id' | 'createdAt'>): Promise<TwoFactorDevice>;
+  getTwoFactorDevice?(deviceId: string): Promise<TwoFactorDevice | null>;
   updateTwoFactorDevice?(
     deviceId: string,
-    data: Partial<import('./2fa').TwoFactorDevice>
-  ): Promise<import('./2fa').TwoFactorDevice>;
-  listTwoFactorDevices?(userId: string): Promise<import('./2fa').TwoFactorDevice[]>;
+    data: Partial<TwoFactorDevice>
+  ): Promise<TwoFactorDevice>;
+  listTwoFactorDevices?(userId: string): Promise<TwoFactorDevice[]>;
   deleteTwoFactorDevice?(deviceId: string): Promise<void>;
-  createBackupCodes?(
-    userId: string,
-    codes: import('./2fa').BackupCode[]
-  ): Promise<import('./2fa').BackupCode[]>;
-  getBackupCodes?(userId: string): Promise<import('./2fa').BackupCode[]>;
+  createBackupCodes?(userId: string, codes: BackupCode[]): Promise<BackupCode[]>;
+  getBackupCodes?(userId: string): Promise<BackupCode[]>;
   markBackupCodeUsed?(codeId: string): Promise<void>;
-  createTwoFactorSession?(
-    data: import('./2fa').TwoFactorSession
-  ): Promise<import('./2fa').TwoFactorSession>;
-  getTwoFactorSession?(sessionId: string): Promise<import('./2fa').TwoFactorSession | null>;
+  createTwoFactorSession?(data: TwoFactorSession): Promise<TwoFactorSession>;
+  getTwoFactorSession?(sessionId: string): Promise<TwoFactorSession | null>;
   completeTwoFactorSession?(sessionId: string): Promise<void>;
 
   // SSO (optional)
@@ -274,22 +262,18 @@ export interface StorageAdapter {
   updateSSOProvider?(providerId: string, data: Partial<unknown>): Promise<unknown>;
   deleteSSOProvider?(providerId: string): Promise<void>;
   listSSOProviders?(orgId?: string): Promise<unknown[]>;
-  createSSOLink?(
-    data: Omit<import('./sso').SSOLink, 'id' | 'linkedAt'>
-  ): Promise<import('./sso').SSOLink>;
-  getSSOLink?(linkId: string): Promise<import('./sso').SSOLink | null>;
-  getUserSSOLinks?(userId: string): Promise<import('./sso').SSOLink[]>;
+  createSSOLink?(data: Omit<SSOLink, 'id' | 'linkedAt'>): Promise<SSOLink>;
+  getSSOLink?(linkId: string): Promise<SSOLink | null>;
+  getUserSSOLinks?(userId: string): Promise<SSOLink[]>;
   deleteSSOLink?(linkId: string): Promise<void>;
-  createSSOSession?(
-    data: Omit<import('./sso').SSOSession, 'id' | 'linkedAt'>
-  ): Promise<import('./sso').SSOSession>;
-  getSSOSession?(sessionId: string): Promise<import('./sso').SSOSession | null>;
+  createSSOSession?(data: Omit<SSOSession, 'id' | 'linkedAt'>): Promise<SSOSession>;
+  getSSOSession?(sessionId: string): Promise<SSOSession | null>;
 
   // Events
   emitEvent(event: AuthEvent): Promise<void>;
-}
+};
 
-export interface BillingAdapter {
+export type BillingAdapter = {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   createCustomer(data: CustomerData): Promise<Customer>;
@@ -300,9 +284,9 @@ export interface BillingAdapter {
   updateSubscription(id: string, data: Partial<SubscriptionData>): Promise<Subscription>;
   cancelSubscription(id: string): Promise<Subscription>;
   processWebhook(payload: unknown, signature: string): Promise<WebhookEvent>;
-}
+};
 
-export interface CacheAdapter {
+export type CacheAdapter = {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   get(key: string): Promise<unknown>;
@@ -310,10 +294,10 @@ export interface CacheAdapter {
   del(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
   expire(key: string, ttl: number): Promise<void>;
-}
+};
 
 // Database record types
-export interface ApiKeyRecord {
+export type ApiKeyRecord = {
   id: string;
   principalId: string;
   hash: string;
@@ -324,9 +308,9 @@ export interface ApiKeyRecord {
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface SessionRecord {
+export type SessionRecord = {
   id: string;
   userId: string;
   orgId?: string;
@@ -336,9 +320,9 @@ export interface SessionRecord {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface OrganizationRecord {
+export type OrganizationRecord = {
   id: string;
   name: string;
   plan: string;
@@ -347,10 +331,10 @@ export interface OrganizationRecord {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
 // User types
-export interface User {
+export type User = {
   id: string;
   email?: string;
   name?: string;
@@ -361,38 +345,38 @@ export interface User {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface OAuthLink {
+export type OAuthLink = {
   provider: string;
   sub: string;
   email?: string;
   name?: string;
   linkedAt: Date;
-}
+};
 
 export type UserRecord = User;
 
-export interface CreateUserInput {
+export type CreateUserInput = {
   email?: string;
   name?: string;
   picture?: string;
   plan?: string;
   entitlements?: Scope[];
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface UpdateUserInput {
+export type UpdateUserInput = {
   email?: string;
   name?: string;
   picture?: string;
   plan?: string;
   entitlements?: Scope[];
   metadata?: Record<string, unknown>;
-}
+};
 
 // Email verification types
-export interface EmailVerificationToken {
+export type EmailVerificationToken = {
   id: string;
   email: string;
   code: string;
@@ -403,24 +387,24 @@ export interface EmailVerificationToken {
   expiresAt: Date;
   createdAt: Date;
   usedAt?: Date;
-}
+};
 
 // Billing types
-export interface Customer {
+export type Customer = {
   id: string;
   email: string;
   name?: string;
   metadata?: Record<string, unknown>;
   createdAt: Date;
-}
+};
 
-export interface CustomerData {
+export type CustomerData = {
   email: string;
   name?: string;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface Subscription {
+export type Subscription = {
   id: string;
   customerId: string;
   productId: string;
@@ -429,47 +413,47 @@ export interface Subscription {
   currentPeriodEnd: Date;
   metadata?: Record<string, unknown>;
   createdAt: Date;
-}
+};
 
-export interface SubscriptionData {
+export type SubscriptionData = {
   customerId: string;
   productId: string;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface WebhookEvent {
+export type WebhookEvent = {
   type: string;
   data: Record<string, unknown>;
   timestamp: Date;
-}
+};
 
 // OAuth types
-export interface OAuthCallbackResult {
+export type OAuthCallbackResult = {
   userId: string;
   session: Session;
   profile: OAuthProfile;
   tokens: OAuthTokenResponse;
-}
+};
 
-export interface OAuthProfile {
+export type OAuthProfile = {
   sub: string;
   email?: string;
   name?: string;
   picture?: string;
   emailVerified?: boolean;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface OAuthTokenResponse {
+export type OAuthTokenResponse = {
   accessToken: string;
   refreshToken?: string;
   idToken?: string;
   expiresIn: number;
   tokenType: string;
   scope?: string;
-}
+};
 
+export * from './2fa';
 export * from './provider';
 export * from './rbac';
-export * from './2fa';
 export * from './sso';

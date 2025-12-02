@@ -1,23 +1,23 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+import { Buffer } from 'node:buffer';
 import https from 'node:https';
 import path from 'node:path';
-import { Buffer } from 'node:buffer';
-import fs from 'fs-extra';
+
 import { createLogger } from '@kitiumai/logger';
+import fs from 'fs-extra';
 
-export interface EmailProvider {
+export type EmailProvider = {
   send(to: string, subject: string, html: string): Promise<void>;
-}
+};
 
-export interface EmailMessage {
+export type EmailMessage = {
   to: string;
   subject: string;
   html: string;
   sentAt: Date;
   provider: string;
-}
+};
 
-export interface EmailProviderFactoryConfig {
+export type EmailProviderFactoryConfig = {
   type?: string;
   from?: string;
   apiKey?: string;
@@ -25,7 +25,7 @@ export interface EmailProviderFactoryConfig {
   outputDir?: string;
   baseUrl?: string;
   [key: string]: unknown;
-}
+};
 
 const logger = createLogger();
 
@@ -39,10 +39,10 @@ abstract class BaseEmailProvider implements EmailProvider {
   }
 }
 
-export interface SMTPEmailProviderConfig {
+export type SMTPEmailProviderConfig = {
   from?: string;
   outputDir?: string;
-}
+};
 
 /**
  * Simple SMTP provider that spools messages to disk. External agents can read the .eml
@@ -72,10 +72,10 @@ export class SMTPEmailProvider extends BaseEmailProvider {
   }
 }
 
-export interface SendGridEmailProviderConfig {
+export type SendGridEmailProviderConfig = {
   apiKey: string;
   from: string;
-}
+};
 
 export class SendGridEmailProvider extends BaseEmailProvider {
   constructor(private readonly config: SendGridEmailProviderConfig) {
@@ -97,11 +97,11 @@ export class SendGridEmailProvider extends BaseEmailProvider {
   }
 }
 
-export interface MailgunEmailProviderConfig {
+export type MailgunEmailProviderConfig = {
   apiKey: string;
   domain: string;
   from: string;
-}
+};
 
 export class MailgunEmailProvider extends BaseEmailProvider {
   constructor(private readonly config: MailgunEmailProviderConfig) {
@@ -109,13 +109,13 @@ export class MailgunEmailProvider extends BaseEmailProvider {
   }
 
   async send(to: string, subject: string, html: string): Promise<void> {
-    const params = new URLSearchParams();
-    params.set('from', this.config.from);
-    params.set('to', to);
-    params.set('subject', subject);
-    params.set('html', html);
+    const parameters = new URLSearchParams();
+    parameters.set('from', this.config.from);
+    parameters.set('to', to);
+    parameters.set('subject', subject);
+    parameters.set('html', html);
 
-    await postForm(`https://api.mailgun.net/v3/${this.config.domain}/messages`, params, {
+    await postForm(`https://api.mailgun.net/v3/${this.config.domain}/messages`, parameters, {
       Authorization: `Basic ${Buffer.from(`api:${this.config.apiKey}`).toString('base64')}`,
     });
 
@@ -123,10 +123,10 @@ export class MailgunEmailProvider extends BaseEmailProvider {
   }
 }
 
-export interface ResendEmailProviderConfig {
+export type ResendEmailProviderConfig = {
   apiKey: string;
   from: string;
-}
+};
 
 export class ResendEmailProvider extends BaseEmailProvider {
   constructor(private readonly config: ResendEmailProviderConfig) {
@@ -152,7 +152,7 @@ export class ResendEmailProvider extends BaseEmailProvider {
 export class MockEmailProvider extends BaseEmailProvider {
   private readonly sent: EmailMessage[] = [];
 
-  constructor(private readonly storeResults: boolean = true) {
+  constructor(private readonly storeResults = true) {
     super('mock');
   }
 
@@ -178,7 +178,7 @@ export class MockEmailProvider extends BaseEmailProvider {
 export async function createEmailProvider(
   config?: EmailProviderFactoryConfig
 ): Promise<EmailProvider> {
-  if (!config || !config.type) {
+  if (!config?.type) {
     return new MockEmailProvider();
   }
 

@@ -1,14 +1,14 @@
-export interface RunbookStep {
+export type RunbookStep = {
   title: string;
   description: string;
   command?: string;
-}
+};
 
-export interface Runbook {
+export type Runbook = {
   name: string;
   scenario: 'backup' | 'restore' | 'rotate-keys' | 'blue-green' | 'incident';
   steps: RunbookStep[];
-}
+};
 
 export function defaultRunbooks(): Runbook[] {
   return [

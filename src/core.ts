@@ -1,67 +1,68 @@
 /**
  * AuthCore - Main authentication engine
- * Orchestrates all authentication operations
+ * Orchestrates all authentication operations with type-safe branded IDs and Result types
  */
 
-import { createLogger } from '@kitiumai/logger';
-import { AuthConfig, validateConfig } from './config';
-import { ValidationError, AuthenticationError } from './errors';
+import { createTimer, getLogger } from '@kitiumai/logger';
+import type { UserId } from '@kitiumai/types';
+import { err, ok } from '@kitiumai/utils-ts/runtime/result';
+import type { Result } from '@kitiumai/utils-ts/types/result';
+
+import type { AuthConfig } from './config';
+import { validateConfig } from './config';
+import { createError } from './errors';
 import { hashPassword, verifyPassword } from './password';
 import { generateApiKey, hashApiKey, verifyApiKey } from './utils';
-
-const logger = createLogger();
+import type { HealthCheckResult } from '@kitiumai/logger';
 
 /**
- * User record
+ * User record with branded user ID
  */
-export interface UserRecord {
-  id: string;
+export type UserRecord = {
+  id: UserId;
   email: string;
   passwordHash?: string;
   createdAt: Date;
   updatedAt: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
- * Session record
+ * Session record with branded user ID
  */
-export interface SessionRecord {
+export type SessionRecord = {
   id: string;
-  userId: string;
+  userId: UserId;
   createdAt: Date;
   expiresAt: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
- * API key record
+ * API key record with branded user ID
  */
-export interface ApiKeyRecord {
+export type ApiKeyRecord = {
   id: string;
-  userId: string;
+  userId: UserId;
   keyHash: string;
   name: string;
   createdAt: Date;
   expiresAt?: Date;
   lastUsedAt?: Date;
-}
+};
 
 /**
  * Main AuthCore class
  */
 export class AuthCore {
-  private config: AuthConfig;
-  private logger = createLogger();
+  private readonly config: AuthConfig;
+  private readonly logger = getLogger();
+  private isHealthy = true;
 
   constructor(config: AuthConfig) {
     const validation = validateConfig(config);
     if (!validation.valid) {
-      throw new ValidationError({
-        code: 'auth/invalid_configuration',
-        message: 'Invalid auth configuration',
-        severity: 'error',
-        retryable: false,
+      throw createError('auth/invalid_configuration', {
         context: { errors: validation.errors },
       });
     }
@@ -81,174 +82,285 @@ export class AuthCore {
   }
 
   /**
+   * Get health status of auth service
+   */
+  async getHealthStatus(): Promise<HealthCheckResult> {
+    try {
+      // Perform basic health checks
+      const isConfigValid = validateConfig(this.config).valid;
+
+      const isHealthy = isConfigValid && this.isHealthy;
+      const status = isHealthy ? 'healthy' : 'unhealthy';
+
+      return {
+        status: status as HealthCheckResult['status'],
+        timestamp: new Date().toISOString(),
+        checks: {
+          logger: { status: status as HealthCheckResult['status'], details: {} },
+          memory: { status: 'healthy' as HealthCheckResult['status'], details: {} },
+          transport: { status: 'healthy' as HealthCheckResult['status'], details: {} },
+        },
+        uptime: process.uptime(),
+      };
+    } catch (error) {
+      this.logger.error('Health check failed', { error: String(error) });
+      this.isHealthy = false;
+
+      return {
+        status: 'unhealthy' as HealthCheckResult['status'],
+        timestamp: new Date().toISOString(),
+        checks: {
+          logger: {
+            status: 'unhealthy' as HealthCheckResult['status'],
+            details: { error: String(error) },
+          },
+          memory: { status: 'healthy' as HealthCheckResult['status'], details: {} },
+          transport: { status: 'healthy' as HealthCheckResult['status'], details: {} },
+        },
+        uptime: process.uptime(),
+      };
+    }
+  }
+
+  /**
+   * Mark service as healthy/unhealthy
+   */
+  setHealthStatus(healthy: boolean): void {
+    this.isHealthy = healthy;
+    this.logger.debug('Auth service health status updated', { healthy });
+  }
+
+  /**
    * Create user with email and password
    */
   async createUser(email: string, password: string): Promise<UserRecord> {
-    this.logger.debug('Creating user', { email });
+    const timer = createTimer(`auth.create_user[${email}]`);
+    try {
+      this.logger.debug('Creating user', { email });
 
-    const passwordHash = hashPassword(password);
-    const now = new Date();
+      const passwordHash = hashPassword(password);
+      const now = new Date();
 
-    const user: UserRecord = {
-      id: `user_${Date.now()}`,
-      email: email.toLowerCase(),
-      passwordHash,
-      createdAt: now,
-      updatedAt: now,
-    };
+      const user: UserRecord = {
+        id: `user_${Date.now()}` as UserId,
+        email: email.toLowerCase(),
+        passwordHash,
+        createdAt: now,
+        updatedAt: now,
+      };
 
-    this.logger.info('User created', { userId: user.id, email });
-    return user;
+      this.logger.info('User created', { userId: user.id, email });
+      return user;
+    } finally {
+      timer?.end?.();
+    }
   }
 
   /**
    * Authenticate user with email and password
+   * Returns Result type for better error handling
    */
-  async authenticateUser(email: string, password: string): Promise<UserRecord> {
-    this.logger.debug('Authenticating user', { email });
+  async authenticateUser(email: string, password: string): Promise<Result<UserRecord>> {
+    const timer = createTimer(`auth.authenticate[${email}]`);
+    try {
+      this.logger.debug('Authenticating user', { email });
 
-    // This is a placeholder - in real implementation, fetch from storage
-    const user: UserRecord = {
-      id: `user_${Date.now()}`,
-      email: email.toLowerCase(),
-      passwordHash: hashPassword(password),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      // This is a placeholder - in real implementation, fetch from storage
+      const userId = `user_${Date.now()}` as unknown as UserId;
+      const user: UserRecord = {
+        id: userId,
+        email: email.toLowerCase(),
+        passwordHash: hashPassword(password),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    if (!user.passwordHash || !verifyPassword(password, user.passwordHash)) {
-      this.logger.warn('Authentication failed', { email });
-      throw new AuthenticationError({
-        code: 'auth/invalid_credentials',
-        message: 'Invalid credentials',
-        severity: 'error',
-        retryable: false,
-        context: { email },
-      });
+      if (!user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+        this.logger.warn('Authentication failed', { email });
+        return err(
+          createError('auth/invalid_credentials', {
+            context: { email },
+          })
+        );
+      }
+
+      this.logger.info('User authenticated', { userId: user.id });
+      return ok(user);
+    } catch (error) {
+      this.logger.error('Authentication error', { error: String(error), email });
+      return err(
+        createError('auth/internal_error', {
+          cause: error as Error,
+          context: { email },
+        })
+      );
+    } finally {
+      timer?.end?.();
     }
-
-    this.logger.info('User authenticated', { userId: user.id });
-    return user;
   }
 
   /**
    * Create session for user
+   * Returns Result type for error handling
    */
-  async createSession(userId: string): Promise<SessionRecord> {
-    this.logger.debug('Creating session', { userId });
+  async createSession(userId: UserId): Promise<Result<SessionRecord>> {
+    const timer = createTimer(`auth.create_session[${userId}]`);
+    try {
+      this.logger.debug('Creating session', { userId });
 
-    const now = new Date();
-    const expiresAt = new Date(
-      now.getTime() + (this.config.session?.expirationMinutes || 60) * 60000
-    );
+      const now = new Date();
+      const expiresAt = new Date(
+        now.getTime() + (this.config.session?.expirationMinutes || 60) * 60000
+      );
 
-    const session: SessionRecord = {
-      id: `session_${Date.now()}`,
-      userId,
-      createdAt: now,
-      expiresAt,
-    };
+      const session: SessionRecord = {
+        id: `session_${Date.now()}`,
+        userId,
+        createdAt: now,
+        expiresAt,
+      };
 
-    this.logger.info('Session created', { sessionId: session.id, userId });
-    return session;
+      this.logger.info('Session created', { sessionId: session.id, userId });
+      return ok(session);
+    } catch (error) {
+      this.logger.error('Session creation failed', { error: String(error), userId });
+      return err(
+        createError('auth/database_error', {
+          cause: error as Error,
+          context: { userId },
+        })
+      );
+    } finally {
+      timer?.end?.();
+    }
   }
 
   /**
    * Verify session is valid
+   * Returns Result type for error handling
    */
-  async verifySession(sessionId: string): Promise<SessionRecord> {
-    this.logger.debug('Verifying session', { sessionId });
+  async verifySession(sessionId: string): Promise<Result<SessionRecord>> {
+    const timer = createTimer(`auth.verify_session[${sessionId}]`);
+    try {
+      this.logger.debug('Verifying session', { sessionId });
 
-    // This is a placeholder - in real implementation, fetch from storage
-    const session: SessionRecord = {
-      id: sessionId,
-      userId: 'user_123',
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 3600000),
-    };
+      // This is a placeholder - in real implementation, fetch from storage
+      const userId = 'user_123' as unknown as UserId;
+      const session: SessionRecord = {
+        id: sessionId,
+        userId,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 3600000),
+      };
 
-    if (new Date() > session.expiresAt) {
-      this.logger.warn('Session expired', { sessionId });
-      throw new AuthenticationError({
-        code: 'auth/session_expired',
-        message: 'Session expired',
-        severity: 'error',
-        retryable: false,
-        context: { sessionId },
-      });
+      if (new Date() > session.expiresAt) {
+        this.logger.warn('Session expired', { sessionId });
+        return err(
+          createError('auth/session_expired', {
+            context: { sessionId },
+          })
+        );
+      }
+
+      return ok(session);
+    } catch (error) {
+      this.logger.error('Session verification failed', { error: String(error), sessionId });
+      return err(
+        createError('auth/internal_error', {
+          cause: error as Error,
+          context: { sessionId },
+        })
+      );
+    } finally {
+      timer?.end?.();
     }
-
-    return session;
   }
 
   /**
    * Generate API key for user
+   * Returns Result type for error handling
    */
   async generateApiKey(
-    userId: string,
+    userId: UserId,
     name: string
-  ): Promise<{
-    key: string;
-    record: ApiKeyRecord;
-  }> {
-    this.logger.debug('Generating API key', { userId, name });
+  ): Promise<Result<{ key: string; record: ApiKeyRecord }>> {
+    const timer = createTimer(`auth.generate_api_key[${userId}]`);
+    try {
+      this.logger.debug('Generating API key', { userId, name });
 
-    const apiKey = generateApiKey('sk');
-    const keyHash = hashApiKey(apiKey);
-    const now = new Date();
+      const apiKey = generateApiKey('sk');
+      const keyHash = hashApiKey(apiKey);
+      const now = new Date();
 
-    const record: ApiKeyRecord = {
-      id: `key_${Date.now()}`,
-      userId,
-      keyHash,
-      name,
-      createdAt: now,
-      expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
-    };
+      const record: ApiKeyRecord = {
+        id: `key_${Date.now()}`,
+        userId,
+        keyHash,
+        name,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+      };
 
-    this.logger.info('API key generated', { keyId: record.id, userId });
-
-    return { key: apiKey, record };
+      this.logger.info('API key generated', { keyId: record.id, userId });
+      return ok({ key: apiKey, record });
+    } catch (error) {
+      this.logger.error('API key generation failed', { error: String(error), userId });
+      return err(
+        createError('auth/database_error', {
+          cause: error as Error,
+          context: { userId },
+        })
+      );
+    } finally {
+      timer?.end?.();
+    }
   }
 
   /**
    * Verify API key
+   * Returns Result type for error handling
    */
-  async verifyApiKey(apiKey: string): Promise<ApiKeyRecord> {
-    this.logger.debug('Verifying API key');
+  async verifyApiKey(apiKey: string): Promise<Result<ApiKeyRecord>> {
+    const timer = createTimer(`auth.verify_api_key`);
+    try {
+      this.logger.debug('Verifying API key');
 
-    // This is a placeholder - in real implementation, fetch from storage
-    const record: ApiKeyRecord = {
-      id: `key_123`,
-      userId: `user_456`,
-      keyHash: hashApiKey(apiKey),
-      name: 'Default Key',
-      createdAt: new Date(),
-    };
+      // This is a placeholder - in real implementation, fetch from storage
+      const userId = 'user_456' as unknown as UserId;
+      const record: ApiKeyRecord = {
+        id: `key_123`,
+        userId,
+        keyHash: hashApiKey(apiKey),
+        name: 'Default Key',
+        createdAt: new Date(),
+      };
 
-    if (record.expiresAt && new Date() > record.expiresAt) {
-      this.logger.warn('API key expired', { keyId: record.id });
-      throw new AuthenticationError({
-        code: 'auth/api_key_expired',
-        message: 'API key expired',
-        severity: 'error',
-        retryable: false,
-        context: { keyId: record.id },
-      });
+      if (record.expiresAt && new Date() > record.expiresAt) {
+        this.logger.warn('API key expired', { keyId: record.id });
+        return err(
+          createError('auth/api_key_expired', {
+            context: { keyId: record.id },
+          })
+        );
+      }
+
+      if (!verifyApiKey(apiKey, record.keyHash)) {
+        this.logger.warn('Invalid API key');
+        return err(createError('auth/invalid_api_key', {}));
+      }
+
+      this.logger.info('API key verified', { keyId: record.id });
+      return ok(record);
+    } catch (error) {
+      this.logger.error('API key verification failed', { error: String(error) });
+      return err(
+        createError('auth/internal_error', {
+          cause: error as Error,
+        })
+      );
+    } finally {
+      timer?.end?.();
     }
-
-    if (!verifyApiKey(apiKey, record.keyHash)) {
-      this.logger.warn('Invalid API key');
-      throw new AuthenticationError({
-        code: 'auth/invalid_api_key',
-        message: 'Invalid API key',
-        severity: 'error',
-        retryable: false,
-      });
-    }
-
-    this.logger.info('API key verified', { keyId: record.id });
-    return record;
   }
 
   /**
@@ -267,7 +379,7 @@ export class AuthCore {
     this.logger.debug('Updating user', { userId });
 
     const user: UserRecord = {
-      id: userId,
+      id: userId as UserId,
       email: updates.email || 'user@example.com',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -293,6 +405,6 @@ export class AuthCore {
  */
 export async function initializeAuthCore(config: AuthConfig): Promise<AuthCore> {
   const authCore = new AuthCore(config);
-  logger.info('Auth core initialized');
+  getLogger().info('Auth core initialized');
   return authCore;
 }

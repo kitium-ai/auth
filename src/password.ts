@@ -3,29 +3,29 @@
  * Secure password hashing, validation, and token generation
  */
 
-import * as crypto from 'crypto';
-import { isEmail } from '@kitiumai/utils-ts';
+import * as crypto from 'node:crypto';
+import { isEmail } from '@kitiumai/utils-ts/runtime/string';
 
 /**
  * Password hashing options
  */
-export interface PasswordHashOptions {
+export type PasswordHashOptions = {
   iterations?: number;
   keyLength?: number;
   digest?: string;
-}
+};
 
 /**
  * Password validation rules
  */
-export interface PasswordValidationRules {
+export type PasswordValidationRules = {
   minLength?: number;
   maxLength?: number;
   requireUppercase?: boolean;
   requireLowercase?: boolean;
   requireNumbers?: boolean;
   requireSpecialChars?: boolean;
-}
+};
 
 /**
  * Hash a password using PBKDF2
@@ -123,7 +123,7 @@ export function validatePasswordStrength(
  */
 export function generatePasswordResetToken(
   userId: string,
-  expiresInMinutes: number = 30
+  expiresInMinutes = 30
 ): { token: string; expiresAt: Date } {
   const randomBytes = crypto.randomBytes(32).toString('hex');
   const tokenData = `${userId}:${randomBytes}`;

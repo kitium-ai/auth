@@ -11,8 +11,8 @@ const logger = createLogger();
  * Lazy loader for managing dynamic imports
  */
 class LazyLoader {
-  private loaded = new Map<string, unknown>();
-  private loading = new Map<string, Promise<unknown>>();
+  private readonly loaded = new Map<string, unknown>();
+  private readonly loading = new Map<string, Promise<unknown>>();
 
   /**
    * Load a module asynchronously

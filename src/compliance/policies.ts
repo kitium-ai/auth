@@ -1,28 +1,28 @@
-export interface PasswordPolicy {
+export type PasswordPolicy = {
   minLength: number;
   requireNumbers?: boolean;
   requireSymbols?: boolean;
   deniedPasswords?: string[];
   breachCheckEnabled?: boolean;
-}
+};
 
-export interface DataRetentionPolicy {
+export type DataRetentionPolicy = {
   eventRetentionDays: number;
   piiRedactionEnabled?: boolean;
   anonymizeAfterDays?: number;
-}
+};
 
-export interface CertificationAlignment {
+export type CertificationAlignment = {
   soc2?: boolean;
   iso27001?: boolean;
   gdpr?: boolean;
-}
+};
 
-export interface ComplianceProfile {
+export type ComplianceProfile = {
   password: PasswordPolicy;
   retention: DataRetentionPolicy;
   certifications?: CertificationAlignment;
-}
+};
 
 export function validatePasswordAgainstPolicy(password: string, policy: PasswordPolicy): string[] {
   const errors: string[] = [];

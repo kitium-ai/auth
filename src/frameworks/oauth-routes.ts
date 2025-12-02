@@ -1,20 +1,20 @@
-/* eslint-disable no-restricted-imports */
-/* eslint-disable @typescript-eslint/naming-convention */
-import { Router, type Request, type Response, type NextFunction } from 'express';
-import https from 'node:https';
 import { Buffer } from 'node:buffer';
-import { createLogger } from '@kitiumai/logger';
-import type { AuthProvider } from '../config';
-import { OAUTH_PROVIDER_PRESETS } from '../providers/oauth-presets';
-import { OAuthManager, PKCEGenerator, type OAuthTokenResponse } from '../oauth';
+import https from 'node:https';
 
-export interface CreateOAuthRoutesOptions {
+import { createLogger } from '@kitiumai/logger';
+import { type NextFunction, type Request, type Response, Router } from 'express';
+
+import { OAuthManager, type OAuthTokenResponse, PKCEGenerator } from '../oauth';
+import { OAUTH_PROVIDER_PRESETS } from '../providers/oauth-presets';
+import type { AuthProvider } from '../config';
+
+export type CreateOAuthRoutesOptions = {
   providers: AuthProvider[];
   basePath?: string;
   defaultRedirectUri?: string;
-}
+};
 
-interface NormalizedOAuthProvider {
+type NormalizedOAuthProvider = {
   id: string;
   name: string;
   authorizationUrl: string;
@@ -23,14 +23,14 @@ interface NormalizedOAuthProvider {
   clientSecret?: string;
   redirectUri: string;
   scopes: string[];
-}
+};
 
-interface PendingState {
+type PendingState = {
   state: string;
   expiresAt: Date;
   providerId: string;
   codeVerifier: string;
-}
+};
 
 const logger = createLogger();
 
@@ -40,7 +40,7 @@ export async function createOAuthRoutes(options: CreateOAuthRoutesOptions): Prom
   const stateStore = new Map<string, PendingState>();
   const basePath = options.basePath || '/auth/oauth';
 
-  router.get(`${basePath}/providers`, (_req, res) => {
+  router.get(`${basePath}/providers`, (_request, res) => {
     res.json(
       providers.map((provider) => ({
         id: provider.id,
@@ -52,13 +52,13 @@ export async function createOAuthRoutes(options: CreateOAuthRoutesOptions): Prom
 
   router.get(
     `${basePath}/:provider/start`,
-    wrapAsync(async (req, res) => {
-      const providerParam = req.params['provider'];
-      if (!providerParam) {
+    wrapAsync(async (request, res) => {
+      const providerParameter = request.params['provider'];
+      if (!providerParameter) {
         res.status(400).json({ error: 'Missing provider identifier' });
         return;
       }
-      const provider = findProvider(providers, providerParam);
+      const provider = findProvider(providers, providerParameter);
       const { codeVerifier, codeChallenge } = PKCEGenerator.generate();
       const stateRecord = OAuthManager.generateState();
       stateRecord.redirectUri = provider.redirectUri;
@@ -88,14 +88,14 @@ export async function createOAuthRoutes(options: CreateOAuthRoutesOptions): Prom
 
   router.post(
     `${basePath}/:provider/callback`,
-    wrapAsync(async (req, res) => {
-      const providerParam = req.params['provider'];
-      if (!providerParam) {
+    wrapAsync(async (request, res) => {
+      const providerParameter = request.params['provider'];
+      if (!providerParameter) {
         res.status(400).json({ error: 'Missing provider identifier' });
         return;
       }
-      const provider = findProvider(providers, providerParam);
-      const { code, state } = req.body as { code?: string; state?: string };
+      const provider = findProvider(providers, providerParameter);
+      const { code, state } = request.body as { code?: string; state?: string };
       if (!code || !state) {
         res.status(400).json({ error: 'Missing authorization code or state' });
         return;
@@ -185,26 +185,26 @@ async function exchangeAuthorizationCode(
   code: string,
   codeVerifier?: string
 ): Promise<OAuthTokenResponse> {
-  const params = new URLSearchParams();
-  params.set('grant_type', 'authorization_code');
-  params.set('code', code);
-  params.set('redirect_uri', provider.redirectUri);
-  params.set('client_id', provider.clientId);
+  const parameters = new URLSearchParams();
+  parameters.set('grant_type', 'authorization_code');
+  parameters.set('code', code);
+  parameters.set('redirect_uri', provider.redirectUri);
+  parameters.set('client_id', provider.clientId);
 
   if (provider.clientSecret) {
-    params.set('client_secret', provider.clientSecret);
+    parameters.set('client_secret', provider.clientSecret);
   }
 
   if (codeVerifier) {
-    params.set('code_verifier', codeVerifier);
+    parameters.set('code_verifier', codeVerifier);
   }
 
-  const responseBody = await httpFormPost(provider.tokenUrl, params);
+  const responseBody = await httpFormPost(provider.tokenUrl, parameters);
   return JSON.parse(responseBody) as OAuthTokenResponse;
 }
 
-async function httpFormPost(url: string, params: URLSearchParams): Promise<string> {
-  const body = params.toString();
+async function httpFormPost(url: string, parameters: URLSearchParams): Promise<string> {
+  const body = parameters.toString();
   const target = new URL(url);
 
   return new Promise<string>((resolve, reject) => {
@@ -239,9 +239,9 @@ async function httpFormPost(url: string, params: URLSearchParams): Promise<strin
   });
 }
 
-function wrapAsync(handler: (req: Request, res: Response) => Promise<void>) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    handler(req, res).catch((error) => {
+function wrapAsync(handler: (request: Request, res: Response) => Promise<void>) {
+  return (request: Request, res: Response, next: NextFunction): void => {
+    handler(request, res).catch((error) => {
       logger.error('OAuth route error', { error: String(error) });
       next(error);
     });

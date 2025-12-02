@@ -1,22 +1,22 @@
 import { nanoid } from 'nanoid';
 
-export interface TenantRegionPolicy {
+export type TenantRegionPolicy = {
   region: string;
   residencyRequired?: boolean;
   encryptionKeyId?: string;
-}
+};
 
-export interface Tenant {
+export type Tenant = {
   id: string;
   name: string;
   regionPolicy: TenantRegionPolicy;
   providers?: string[];
   featureFlags?: Record<string, boolean>;
   createdAt: Date;
-}
+};
 
 export class TenantRegistry {
-  private tenants = new Map<string, Tenant>();
+  private readonly tenants = new Map<string, Tenant>();
 
   createTenant(name: string, regionPolicy: TenantRegionPolicy, providers?: string[]): Tenant {
     const tenant: Tenant = {

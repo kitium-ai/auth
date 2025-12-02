@@ -3,11 +3,11 @@
  * Global error handling for Express apps
  */
 
-/* eslint-disable no-restricted-imports */
-import { Request, Response, NextFunction } from 'express';
-import { createLogger } from '@kitiumai/logger';
-import { getStatusCode, toAuthError, NotFoundError } from '../errors';
 import { logError, problemDetailsFrom } from '@kitiumai/error';
+import { createLogger } from '@kitiumai/logger';
+import type { NextFunction, Request, Response } from 'express';
+
+import { getStatusCode, NotFoundError, toAuthError } from '../errors';
 
 const logger = createLogger();
 
@@ -16,7 +16,7 @@ const logger = createLogger();
  */
 export function errorHandler(
   error: unknown,
-  req: Request,
+  request: Request,
   res: Response,
   _next: NextFunction
 ): void {
@@ -32,19 +32,19 @@ export function errorHandler(
   // Enrich with request context
   const enrichedProblem = {
     ...problem,
-    instance: req.path,
+    instance: request.path,
     extensions: {
       ...problem.extensions,
-      path: req.path,
-      method: req.method,
+      path: request.path,
+      method: request.method,
       timestamp: new Date().toISOString(),
     },
   };
 
   logger.error('Request error', {
     statusCode,
-    path: req.path,
-    method: req.method,
+    path: request.path,
+    method: request.method,
     error: kitiumError.code,
     message: kitiumError.message,
   });
@@ -56,10 +56,10 @@ export function errorHandler(
  * Async handler wrapper for route handlers
  */
 export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>
-): (req: Request, res: Response, next: NextFunction) => void {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+  function_: (request: Request, res: Response, next: NextFunction) => Promise<unknown>
+): (request: Request, res: Response, next: NextFunction) => void {
+  return (request: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(function_(request, res, next)).catch(next);
   };
 }
 
@@ -68,18 +68,18 @@ export function asyncHandler(
  */
 export function setupErrorHandling(app: { use: (handler: unknown) => void }): void {
   // 404 handler
-  app.use((req: Request, res: Response) => {
+  app.use((request: Request, res: Response) => {
     const notFoundError = new NotFoundError({
       code: 'auth/route_not_found',
       message: 'Route not found',
       severity: 'error',
       retryable: false,
-      context: { path: req.path, method: req.method },
+      context: { path: request.path, method: request.method },
     });
     const problem = problemDetailsFrom(notFoundError);
     res.status(404).json({
       ...problem,
-      instance: req.path,
+      instance: request.path,
     });
   });
 

@@ -7,7 +7,7 @@ export function createSAMLRoutes(): unknown[] {
 }
 export function extractTenantIdMiddleware() {
   return (
-    req: {
+    request: {
       headers: Record<string, unknown>;
       query: Record<string, unknown>;
       [key: string]: unknown;
@@ -16,14 +16,16 @@ export function extractTenantIdMiddleware() {
     next: () => void
   ) => {
     // Extract tenant ID from request headers or query params
-    const tenantId = (req.headers['x-tenant-id'] || req.query['tenantId']) as string | undefined;
+    const tenantId = (request.headers['x-tenant-id'] || request.query['tenantId']) as
+      | string
+      | undefined;
     if (tenantId) {
-      req['tenantId'] = tenantId;
+      request['tenantId'] = tenantId;
       // Store tenant ID in response locals for potential use
       res.locals = { ...(res.locals || {}), tenantId };
     }
     // Use req and res to avoid unused variable warnings
-    logger.debug('Extracting tenant ID', { hasReq: !!req, hasRes: !!res });
+    logger.debug('Extracting tenant ID', { hasReq: !!request, hasRes: !!res });
     next();
   };
 }

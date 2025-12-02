@@ -3,11 +3,11 @@
  * Express middleware for rate limiting
  */
 
-/* eslint-disable no-restricted-imports */
-import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '@kitiumai/logger';
-import { RateLimiter, generateRateLimitKey, generateRateLimitHeaders } from './rate-limiter';
+import type { NextFunction, Request, Response } from 'express';
+
 import { RateLimitError } from '../errors';
+import { generateRateLimitHeaders, generateRateLimitKey, RateLimiter } from './rate-limiter';
 
 const logger = createLogger();
 
@@ -15,13 +15,13 @@ const logger = createLogger();
  * Create rate limit middleware
  */
 export function createRateLimitMiddleware(
-  maxRequests: number = 100,
-  windowMs: number = 60000
-): (req: Request, res: Response, next: NextFunction) => void {
+  maxRequests = 100,
+  windowMs = 60000
+): (request: Request, res: Response, next: NextFunction) => void {
   const limiter = new RateLimiter(maxRequests, windowMs);
 
-  return (req: Request, res: Response, next: NextFunction) => {
-    const key = generateRateLimitKey('ip', req.ip || 'unknown');
+  return (request: Request, res: Response, next: NextFunction) => {
+    const key = generateRateLimitKey('ip', request.ip || 'unknown');
     const allowed = limiter.isAllowed(key);
 
     const headers = generateRateLimitHeaders(limiter, key, maxRequests);
@@ -30,7 +30,7 @@ export function createRateLimitMiddleware(
     });
 
     if (!allowed) {
-      logger.warn('Rate limit exceeded', { key, ip: req.ip });
+      logger.warn('Rate limit exceeded', { key, ip: request.ip });
       throw new RateLimitError({
         code: 'auth/rate_limit_exceeded',
         message: 'Too many requests',
@@ -47,9 +47,9 @@ export function createRateLimitMiddleware(
  * Create public rate limit middleware (more permissive)
  */
 export function createPublicRateLimitMiddleware(
-  maxRequests: number = 1000,
-  windowMs: number = 3600000 // 1 hour
-): (req: Request, res: Response, next: NextFunction) => void {
+  maxRequests = 1000,
+  windowMs = 3600000 // 1 hour
+): (request: Request, res: Response, next: NextFunction) => void {
   return createRateLimitMiddleware(maxRequests, windowMs);
 }
 
@@ -57,13 +57,13 @@ export function createPublicRateLimitMiddleware(
  * Create per-principal rate limit middleware
  */
 export function createPerPrincipalRateLimitMiddleware(
-  maxRequests: number = 10000,
-  windowMs: number = 3600000
-): (req: Request, res: Response, next: NextFunction) => void {
+  maxRequests = 10000,
+  windowMs = 3600000
+): (request: Request, res: Response, next: NextFunction) => void {
   const limiter = new RateLimiter(maxRequests, windowMs);
 
-  return (req: Request, res: Response, next: NextFunction) => {
-    const userId = (req as { user?: { id: string } }).user?.id;
+  return (request: Request, res: Response, next: NextFunction) => {
+    const userId = (request as { user?: { id: string } }).user?.id;
     const key = generateRateLimitKey('user', userId || 'anonymous');
     const allowed = limiter.isAllowed(key);
 
@@ -91,13 +91,13 @@ export function createPerPrincipalRateLimitMiddleware(
  */
 export function createEndpointRateLimitMiddleware(
   endpoint: string,
-  maxRequests: number = 50,
-  windowMs: number = 60000
-): (req: Request, res: Response, next: NextFunction) => void {
+  maxRequests = 50,
+  windowMs = 60000
+): (request: Request, res: Response, next: NextFunction) => void {
   const limiter = new RateLimiter(maxRequests, windowMs);
 
-  return (req: Request, res: Response, next: NextFunction) => {
-    const userId = (req as { user?: { id?: string } }).user?.id || 'anonymous';
+  return (request: Request, res: Response, next: NextFunction) => {
+    const userId = (request as { user?: { id?: string } }).user?.id || 'anonymous';
     const key = generateRateLimitKey(`endpoint:${endpoint}`, userId);
     const allowed = limiter.isAllowed(key);
 

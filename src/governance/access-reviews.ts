@@ -3,11 +3,12 @@
  * Periodic access certification and review workflows
  */
 
-/* eslint-disable no-restricted-imports */
-import { nanoid } from 'nanoid';
 import { createLogger } from '@kitiumai/logger';
-import { StorageAdapter } from '../types';
-import { ValidationError, AuthorizationError } from '../errors';
+import { nanoid } from 'nanoid';
+
+import { AuthorizationError, ValidationError } from '../errors';
+
+import type { StorageAdapter } from '../types';
 
 const logger = createLogger();
 
@@ -24,7 +25,7 @@ export type AccessReviewType = 'user' | 'role' | 'api_key' | 'organization_membe
 /**
  * Access review
  */
-export interface AccessReview {
+export type AccessReview = {
   id: string;
   orgId: string;
   type: AccessReviewType;
@@ -36,12 +37,12 @@ export interface AccessReview {
   expiresAt: Date;
   reviewedAt?: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * Access review campaign
  */
-export interface AccessReviewCampaign {
+export type AccessReviewCampaign = {
   id: string;
   orgId: string;
   name: string;
@@ -59,14 +60,14 @@ export interface AccessReviewCampaign {
   startedAt?: Date;
   completedAt?: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * Access Review Service
  */
 export class AccessReviewService {
-  private reviews: Map<string, AccessReview> = new Map();
-  private campaigns: Map<string, AccessReviewCampaign> = new Map();
+  private readonly reviews: Map<string, AccessReview> = new Map();
+  private readonly campaigns: Map<string, AccessReviewCampaign> = new Map();
 
   constructor(storage: StorageAdapter) {
     logger.debug('AccessReviewService initialized', { storageType: storage.constructor.name });
@@ -277,7 +278,7 @@ export class AccessReviewService {
    */
   async autoApproveExpiredReviews(campaignId: string): Promise<number> {
     const campaign = this.campaigns.get(campaignId);
-    if (!campaign || !campaign.autoApprove) {
+    if (!campaign?.autoApprove) {
       return 0;
     }
 

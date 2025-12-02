@@ -1,14 +1,12 @@
-/* eslint-disable no-restricted-imports */
-/* eslint-disable @typescript-eslint/naming-convention */
-import {
-  createEmailRouteController,
-  EmailRouteControllerOptions,
-  EmailRegistrationRequest,
+import type {
   EmailLoginRequest,
-  EmailResetRequest,
-  EmailPasswordResetRequest,
   EmailMagicLinkRequest,
+  EmailPasswordResetRequest,
+  EmailRegistrationRequest,
+  EmailResetRequest,
+  EmailRouteControllerOptions,
 } from '../email/routes';
+import { createEmailRouteController } from '../email/routes';
 
 export type NextEmailRouteHandler = (request: Request) => Promise<Response>;
 export type EmailAuthRoutesConfig = EmailRouteControllerOptions;

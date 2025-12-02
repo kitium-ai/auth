@@ -5,107 +5,117 @@ export { AuthCore } from './core';
 
 // Configuration system (always loaded)
 export {
-  defineConfig,
-  createProvider,
-  createOAuthProvider,
-  createEmailProvider,
-  createStorageConfig,
-  createBillingConfig,
   createApiKeyConfig,
-  createSessionConfig,
-  createOrganizationConfig,
+  createBillingConfig,
+  createEmailProvider,
   createEventConfig,
-  validateConfig,
+  createOAuthProvider,
+  createOrganizationConfig,
+  createProvider,
+  createSessionConfig,
+  createStorageConfig,
+  defineConfig,
   getEnvVar,
-  getEnvVarAsNumber,
   getEnvVarAsBoolean,
+  getEnvVarAsNumber,
+  validateConfig,
 } from './config';
 
 // Types (always loaded)
 export type {
-  // Core types
-  Scope,
-  Principal,
-  IssueApiKeyInput,
-  IssueApiKeyResult,
-  VerifyApiKeyResult,
-  Session,
-  Entitlement,
-  Plan,
-  Organization,
-  OrganizationMember,
-  AuthEvent,
-  RateLimit,
-
-  // Configuration types
-  AuthConfig,
-  AuthProvider,
-  StorageConfig,
-  BillingConfig,
-  BillingProduct,
   ApiKeyConfig,
-  SessionConfig,
-  OrganizationConfig,
-  EventConfig,
-
-  // Adapter interfaces
-  StorageAdapter,
-  BillingAdapter,
-  CacheAdapter,
-
   // Database record types
   ApiKeyRecord,
-  SessionRecord,
-  OrganizationRecord,
-
+  // Configuration types
+  AuthConfig,
+  AuthEvent,
+  AuthProvider,
+  BillingAdapter,
+  BillingConfig,
+  BillingProduct,
+  CacheAdapter,
+  CreateUserInput,
   // Billing types
   Customer,
   CustomerData,
-  Subscription,
-  SubscriptionData,
-  WebhookEvent,
-
+  // Verification types
+  EmailVerificationToken,
+  Entitlement,
+  EventConfig,
+  IssueApiKeyInput,
+  IssueApiKeyResult,
   // OAuth types
   OAuthCallbackResult,
+  OAuthLink,
   OAuthProfile,
   OAuthTokenResponse,
-
+  Organization,
+  OrganizationConfig,
+  OrganizationMember,
+  OrganizationRecord,
+  Plan,
+  Principal,
+  RateLimit,
+  // Core types
+  Scope,
+  Session,
+  SessionConfig,
+  SessionRecord,
+  // Adapter interfaces
+  StorageAdapter,
+  StorageConfig,
+  Subscription,
+  SubscriptionData,
+  UpdateUserInput,
   // User types
   User,
   UserRecord,
-  OAuthLink,
-  CreateUserInput,
-  UpdateUserInput,
-
-  // Verification types
-  EmailVerificationToken,
+  VerifyApiKeyResult,
+  WebhookEvent,
 } from './types';
 
 // RBAC types
 export type { RoleRecord } from './types/rbac';
 
 // Two-factor auth types
-export type { TwoFactorDevice, BackupCode, TwoFactorSession } from './types/2fa';
+export type { BackupCode, TwoFactorDevice, TwoFactorSession } from './types/2fa';
 
 // SSO types
 export type { SSOLink, SSOSession } from './types/sso';
 
 // Observability and governance
-export {
-  AuditService,
-  ConsoleAuditExporter,
-  InMemoryAuditExporter,
-  createDefaultAuditService,
-} from './observability/audit';
 export type {
+  CertificationAlignment,
+  ComplianceProfile,
+  DataRetentionPolicy,
+  PasswordPolicy,
+} from './compliance/policies';
+export { defaultComplianceProfile, validatePasswordAgainstPolicy } from './compliance/policies';
+export type {
+  JitProfile,
+  JitResult,
+  ScimProvisioningResult,
+  ScimUser,
+} from './lifecycle/provisioning';
+export { ProvisioningService } from './lifecycle/provisioning';
+export type { Tenant, TenantRegionPolicy } from './multitenancy/tenant-registry';
+export { TenantRegistry } from './multitenancy/tenant-registry';
+export type {
+  AuditCategory,
   AuditEvent,
   AuditExporter,
   AuditOptions,
   AuditSeverity,
-  AuditCategory,
   MetricsSink,
 } from './observability/audit';
-export { TokenGovernance, createTokenGovernance } from './security/token-governance';
+export {
+  AuditService,
+  ConsoleAuditExporter,
+  createDefaultAuditService,
+  InMemoryAuditExporter,
+} from './observability/audit';
+export type { Runbook, RunbookStep } from './operational/runbooks';
+export { defaultRunbooks } from './operational/runbooks';
 export type {
   JwksKey,
   KeyRotationPolicy,
@@ -113,104 +123,74 @@ export type {
   TokenGovernanceConfig,
   TokenIssueResult,
 } from './security/token-governance';
-export { ProvisioningService } from './lifecycle/provisioning';
-export type {
-  JitProfile,
-  JitResult,
-  ScimProvisioningResult,
-  ScimUser,
-} from './lifecycle/provisioning';
-export { TenantRegistry } from './multitenancy/tenant-registry';
-export type { Tenant, TenantRegionPolicy } from './multitenancy/tenant-registry';
-export { defaultComplianceProfile, validatePasswordAgainstPolicy } from './compliance/policies';
-export type {
-  ComplianceProfile,
-  PasswordPolicy,
-  DataRetentionPolicy,
-  CertificationAlignment,
-} from './compliance/policies';
-export { defaultRunbooks } from './operational/runbooks';
-export type { Runbook, RunbookStep } from './operational/runbooks';
+export { createTokenGovernance, TokenGovernance } from './security/token-governance';
 
 // Plugin system (always loaded)
 export { KitiumPluginManager } from './plugins/manager';
-export type { Plugin, PluginManager, PluginContext } from './plugins/types';
+export type { Plugin, PluginContext, PluginManager } from './plugins/types';
 
 // Lazy loading system (always loaded)
-export { lazyLoader, lazy, lazyImport, loadIfAvailable } from './lazy';
+export { lazy, lazyImport, lazyLoader, loadIfAvailable } from './lazy';
 
 // Utility functions (always loaded)
-export { generateApiKey, hashApiKey, verifyApiKey } from './utils';
-export {
-  hashPassword,
-  verifyPassword,
-  validatePasswordStrength,
-  generatePasswordResetToken,
-  validateEmail,
-  normalizeEmail,
-} from './password';
 export type { PasswordHashOptions, PasswordValidationRules } from './password';
+export {
+  generatePasswordResetToken,
+  hashPassword,
+  normalizeEmail,
+  validateEmail,
+  validatePasswordStrength,
+  verifyPassword,
+} from './password';
+export { generateApiKey, hashApiKey, verifyApiKey } from './utils';
 
 // OAuth utilities (always loaded)
-export { OAuthManager, PKCEGenerator } from './oauth';
 export type {
-  OAuthState,
   OAuthAuthorizationRequest,
+  OAuthState,
   OAuthTokenResponse as OAuthTokenResponseType,
 } from './oauth';
+export { OAuthManager, PKCEGenerator } from './oauth';
 
 // Pre-configured OAuth providers (always loaded)
-export {
-  createOAuthProviderFromPreset,
-  getAvailableOAuthProviders,
-  hasOAuthProviderPreset,
-  GOOGLE_PROVIDER,
-  GITHUB_PROVIDER,
-  MICROSOFT_PROVIDER,
-  FACEBOOK_PROVIDER,
-  APPLE_PROVIDER,
-  TWITTER_PROVIDER,
-  DISCORD_PROVIDER,
-  LINKEDIN_PROVIDER,
-  OAUTH_PROVIDER_PRESETS,
-} from './providers/oauth-presets';
 export type { OAuthProviderPreset } from './providers/oauth-presets';
+export {
+  APPLE_PROVIDER,
+  createOAuthProviderFromPreset,
+  DISCORD_PROVIDER,
+  FACEBOOK_PROVIDER,
+  getAvailableOAuthProviders,
+  GITHUB_PROVIDER,
+  GOOGLE_PROVIDER,
+  hasOAuthProviderPreset,
+  LINKEDIN_PROVIDER,
+  MICROSOFT_PROVIDER,
+  OAUTH_PROVIDER_PRESETS,
+  TWITTER_PROVIDER,
+} from './providers/oauth-presets';
 
 // Error handling (always loaded)
-// Re-exports from @kitiumai/error with auth-specific wrappers
+// Re-exports from @kitiumai/error with auth-specific wrappers and ErrorRegistry
 export {
-  AuthError,
-  ValidationError,
+  AUTH_ERRORS, // Centralized error definitions
   AuthenticationError,
   AuthorizationError,
-  NotFoundError,
   ConflictError,
-  RateLimitError,
-  OAuthError,
-  ProviderNotFoundError,
-  TokenError,
-  SessionError,
-  ApiKeyError,
-  DatabaseError,
-  ConfigurationError,
-  IntegrationError,
+  createError,
+  formatErrorResponse,
+  getStatusCode,
   InternalError,
   isAuthError,
+  NotFoundError,
+  problemDetailsFrom,
+  RateLimitError,
   toAuthError,
-  getStatusCode,
-  formatErrorResponse,
+  ValidationError,
 } from './errors';
 
 // Also export KitiumError utilities for direct use
-export {
-  KitiumError,
-  toKitiumError,
-  problemDetailsFrom,
-  logError,
-  enrichError,
-  getErrorFingerprint,
-  getErrorMetrics,
-} from '@kitiumai/error';
+export type { ErrorRegistry } from '@kitiumai/error';
+export { KitiumError, toKitiumError } from '@kitiumai/error';
 
 // Error middleware (lazy loaded)
 export const getErrorHandler = (): Promise<
@@ -225,13 +205,11 @@ export const getErrorMiddleware = (): Promise<
 
 // Rate limiting (lazy loaded)
 export const getRateLimiter = (): Promise<{
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   RateLimiter: typeof import('./frameworks/rate-limiter').RateLimiter;
   generateRateLimitKey: typeof import('./frameworks/rate-limiter').generateRateLimitKey;
   generateRateLimitHeaders: typeof import('./frameworks/rate-limiter').generateRateLimitHeaders;
 }> =>
   import('./frameworks/rate-limiter').then((m) => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     RateLimiter: m.RateLimiter,
     generateRateLimitKey: m.generateRateLimitKey,
     generateRateLimitHeaders: m.generateRateLimitHeaders,
@@ -255,14 +233,12 @@ export const getEmailAuthService = (): Promise<typeof import('./email/service').
 export const getEmailRoutes = (): Promise<typeof import('./email/routes').createEmailRoutes> =>
   import('./email/routes').then((m) => m.createEmailRoutes);
 export const getEmailVerificationManager = (): Promise<{
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   EmailVerificationManager: typeof import('./email/verification').EmailVerificationManager;
   generateVerificationLink: typeof import('./email/verification').generateVerificationLink;
   generateResetLink: typeof import('./email/verification').generateResetLink;
   generateLoginLink: typeof import('./email/verification').generateLoginLink;
 }> =>
   import('./email/verification').then((m) => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     EmailVerificationManager: m.EmailVerificationManager,
     generateVerificationLink: m.generateVerificationLink,
     generateResetLink: m.generateResetLink,
@@ -270,28 +246,28 @@ export const getEmailVerificationManager = (): Promise<{
   }));
 export const getEmailProviders = (): Promise<{
   createEmailProvider: typeof import('./email/providers').createEmailProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   SMTPEmailProvider: typeof import('./email/providers').SMTPEmailProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   SendGridEmailProvider: typeof import('./email/providers').SendGridEmailProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   MailgunEmailProvider: typeof import('./email/providers').MailgunEmailProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   ResendEmailProvider: typeof import('./email/providers').ResendEmailProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   MockEmailProvider: typeof import('./email/providers').MockEmailProvider;
 }> =>
   import('./email/providers').then((m) => ({
     createEmailProvider: m.createEmailProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     SMTPEmailProvider: m.SMTPEmailProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     SendGridEmailProvider: m.SendGridEmailProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     MailgunEmailProvider: m.MailgunEmailProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     ResendEmailProvider: m.ResendEmailProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     MockEmailProvider: m.MockEmailProvider,
   }));
 export const getEmailTemplates = (): Promise<{
@@ -314,23 +290,21 @@ export const getTwoFactorAuthService = (): Promise<
   typeof import('./twofa/service').TwoFactorAuthService
 > => import('./twofa/service').then((m) => m.TwoFactorAuthService);
 export const getSMSProviders = (): Promise<{
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   ConsoleSMSProvider: typeof import('./twofa/sms-provider').ConsoleSMSProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   TwilioSMSProvider: typeof import('./twofa/sms-provider').TwilioSMSProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   AWSSNSSMSProvider: typeof import('./twofa/sms-provider').AWSSNSSMSProvider;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   CustomSMSProvider: typeof import('./twofa/sms-provider').CustomSMSProvider;
 }> =>
   import('./twofa/sms-provider').then((m) => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     ConsoleSMSProvider: m.ConsoleSMSProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     TwilioSMSProvider: m.TwilioSMSProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     AWSSNSSMSProvider: m.AWSSNSSMSProvider,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     CustomSMSProvider: m.CustomSMSProvider,
   }));
 
@@ -340,27 +314,27 @@ export const getWebAuthnService = (): Promise<
 > => import('./webauthn/service').then((m) => m.WebAuthnService);
 // WebAuthn types (always loaded)
 export type {
-  WebAuthnDevice,
-  WebAuthnConfig,
-  WebAuthnRegistrationOptions,
   WebAuthnAuthenticationOptions,
-  WebAuthnCredentialCreation,
+  WebAuthnConfig,
   WebAuthnCredentialAssertion,
+  WebAuthnCredentialCreation,
+  WebAuthnDevice,
+  WebAuthnRegistrationOptions,
 } from './webauthn/types';
 
 // Hooks/Events System (always loaded)
 export { createHookManager, HookManagerImpl } from './hooks/manager';
 export type {
-  HookManager,
-  HookEventType,
-  HookContext,
-  HookHandler,
-  HookRegistration,
-  UserHookData,
-  SessionHookData,
   ApiKeyHookData,
-  OrganizationHookData,
   AuthHookData,
+  HookContext,
+  HookEventType,
+  HookHandler,
+  HookManager,
+  HookRegistration,
+  OrganizationHookData,
+  SessionHookData,
+  UserHookData,
 } from './hooks/types';
 
 // Security Features (lazy loaded)
@@ -376,27 +350,27 @@ export const getDeviceManagementService = (): Promise<
 // Security types (always loaded)
 export type {
   AnomalyDetectionConfig,
-  RiskScore,
-  RiskFactors,
   AuthAttempt,
+  RiskFactors,
+  RiskScore,
 } from './security/anomaly-detection';
 export type {
   ConditionalAccessPolicy,
   ConditionalAccessPolicyType,
-  LocationPolicy,
   DevicePolicy,
-  TimePolicy,
   IpRangePolicy,
+  LocationPolicy,
   MfaRequiredPolicy,
-  RiskLevelPolicy,
   PolicyEvaluationContext,
   PolicyEvaluationResult,
+  RiskLevelPolicy,
+  TimePolicy,
 } from './security/conditional-access';
 export type {
   Device,
-  DeviceType,
-  DeviceTrustLevel,
   DeviceRegistrationRequest,
+  DeviceTrustLevel,
+  DeviceType,
 } from './security/device-management';
 
 // Governance types (always loaded)
@@ -463,8 +437,8 @@ export const getNextAuth = (): Promise<typeof import('./frameworks/next').withAu
   import('./frameworks/next').then((m) => m.withAuth);
 export const getExpressAuth = (): Promise<typeof import('./frameworks/express').authMiddleware> =>
   import('./frameworks/express').then((m) => m.authMiddleware);
-export const getReactAuth = (): Promise<typeof import('./frameworks/react').useAuth> =>
-  import('./frameworks/react').then((m) => m.useAuth);
+export const getReactUtils = (): Promise<typeof import('./frameworks/react')> =>
+  import('./frameworks/react');
 export const getOAuthRoutes = (): Promise<
   typeof import('./frameworks/oauth-routes').createOAuthRoutes
 > => import('./frameworks/oauth-routes').then((m) => m.createOAuthRoutes);
@@ -499,7 +473,6 @@ export const getBillingPortal = (): Promise<
 export async function createAuth(
   config: import('./config').AuthConfig
 ): Promise<import('./core').AuthCore> {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { AuthCore } = await import('./core');
   return new AuthCore(config);
 }
@@ -514,13 +487,11 @@ export async function authMiddleware(options?: Record<string, unknown>): Promise
   return expressAuth(options);
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export async function SignIn(props: unknown): Promise<null> {
   const { signIn: signInComponent } = await import('./components/SignIn');
   return signInComponent(props);
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export async function UserMenu(props: unknown): Promise<null> {
   const { userMenu: userMenuComponent } = await import('./components/UserMenu');
   return userMenuComponent(props);

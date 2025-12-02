@@ -4,15 +4,15 @@
 
 export type ProviderType = 'oauth' | 'email' | 'saml' | 'magic-link';
 
-export interface Provider {
+export type Provider = {
   id: string;
   type: ProviderType;
   enabled: boolean;
   name: string;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface OAuthProvider extends Provider {
+export type OAuthProvider = {
   type: 'oauth';
   clientId: string;
   clientSecret: string;
@@ -22,27 +22,27 @@ export interface OAuthProvider extends Provider {
   userinfoUrl: string;
   scope?: string[];
   authorizationMethod?: 'header' | 'body';
-}
+} & Provider;
 
-export interface EmailProvider extends Provider {
+export type EmailProvider = {
   type: 'email';
   fromEmail: string;
   fromName?: string;
   replyTo?: string;
-}
+} & Provider;
 
-export interface SAMLProvider extends Provider {
+export type SAMLProvider = {
   type: 'saml';
   entryPoint: string;
   issuer: string;
   cert: string;
   identifierFormat?: string;
   wantAssertionsSigned?: boolean;
-}
+} & Provider;
 
-export interface MagicLinkProvider extends Provider {
+export type MagicLinkProvider = {
   type: 'magic-link';
   tokenExpiryMinutes?: number;
-}
+} & Provider;
 
 export type AuthProvider = OAuthProvider | EmailProvider | SAMLProvider | MagicLinkProvider;

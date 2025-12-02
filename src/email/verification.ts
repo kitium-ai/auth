@@ -2,15 +2,15 @@ import { randomBytes } from 'node:crypto';
 
 type VerificationTokenType = 'verify' | 'reset' | 'login';
 
-export interface VerificationTokenRecord {
+export type VerificationTokenRecord = {
   token: string;
   type: VerificationTokenType;
   email?: string;
   metadata?: Record<string, unknown>;
   expiresAt: Date;
-}
+};
 
-export interface EmailVerificationManagerOptions {
+export type EmailVerificationManagerOptions = {
   /**
    * Base URL used when constructing verification links.
    */
@@ -19,7 +19,7 @@ export interface EmailVerificationManagerOptions {
    * Minutes until tokens expire. Defaults to 60 minutes.
    */
   ttlMinutes?: number;
-}
+};
 
 const DEFAULT_BASE_URL = 'http://localhost:3000';
 

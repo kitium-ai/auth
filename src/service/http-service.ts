@@ -1,11 +1,11 @@
+import { createLogger } from '@kitiumai/logger';
 import express, { type Express, type Router } from 'express';
 import type { Server } from 'node:http';
-import { createLogger } from '@kitiumai/logger';
 
-export interface HttpAuthServiceOptions {
+export type HttpAuthServiceOptions = {
   routes?: Router[];
   configure?(app: Express): void;
-}
+};
 
 export class HttpAuthService {
   private readonly app: Express;
@@ -24,8 +24,8 @@ export class HttpAuthService {
     this.app.disable('x-powered-by');
     this.app.use(express.json());
 
-    this.app.get('/healthz', (_req, res) => {
-      res.json({ status: 'ok' });
+    this.app.get('/healthz', (_request, response) => {
+      response.json({ status: 'ok' });
     });
 
     this.options.configure?.(this.app);

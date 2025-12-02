@@ -3,11 +3,12 @@
  * Device registration, trust, and device-based authentication
  */
 
-/* eslint-disable no-restricted-imports */
-import { nanoid } from 'nanoid';
 import { createLogger } from '@kitiumai/logger';
-import { StorageAdapter } from '../types';
-import { ValidationError, AuthenticationError } from '../errors';
+import { nanoid } from 'nanoid';
+
+import { AuthenticationError, ValidationError } from '../errors';
+
+import type { StorageAdapter } from '../types';
 
 const logger = createLogger();
 
@@ -24,7 +25,7 @@ export type DeviceTrustLevel = 'untrusted' | 'trusted' | 'verified';
 /**
  * Device record
  */
-export interface Device {
+export type Device = {
   id: string;
   userId: string;
   orgId?: string;
@@ -39,12 +40,12 @@ export interface Device {
   lastSeenAt: Date;
   createdAt: Date;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * Device registration request
  */
-export interface DeviceRegistrationRequest {
+export type DeviceRegistrationRequest = {
   userId: string;
   orgId?: string;
   name: string;
@@ -53,13 +54,13 @@ export interface DeviceRegistrationRequest {
   ipAddress?: string;
   type?: DeviceType;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * Device Management Service
  */
 export class DeviceManagementService {
-  private devices: Map<string, Device> = new Map();
+  private readonly devices: Map<string, Device> = new Map();
 
   constructor(storage: StorageAdapter) {
     logger.debug('DeviceManagementService initialized', { storageType: storage.constructor.name });

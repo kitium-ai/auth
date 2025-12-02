@@ -3,47 +3,46 @@
  * Development and testing adapter that stores data in memory
  */
 
-/* eslint-disable no-restricted-imports */
 import type {
-  StorageAdapter,
   ApiKeyRecord,
-  SessionRecord,
-  UserRecord,
-  CreateUserInput,
-  UpdateUserInput,
-  OrganizationRecord,
-  EmailVerificationToken,
   AuthEvent,
-  OAuthLink,
-  RoleRecord,
-  TwoFactorDevice,
   BackupCode,
-  SSOSession,
+  CreateUserInput,
+  EmailVerificationToken,
+  OAuthLink,
+  OrganizationRecord,
+  RoleRecord,
+  SessionRecord,
   SSOLink,
+  SSOSession,
+  StorageAdapter,
+  TwoFactorDevice,
+  UpdateUserInput,
+  UserRecord,
 } from '../types';
 
 /**
  * In-memory storage adapter implementation
  */
 export class MemoryStorageAdapter implements StorageAdapter {
-  private users = new Map<string, UserRecord>();
-  private usersByEmail = new Map<string, UserRecord>();
-  private usersByOAuth = new Map<string, UserRecord>();
-  private sessions = new Map<string, SessionRecord>();
-  private apiKeys = new Map<string, ApiKeyRecord>();
-  private apiKeysByHash = new Map<string, ApiKeyRecord>();
-  private organizations = new Map<string, OrganizationRecord>();
-  private roles = new Map<string, RoleRecord>();
-  private twoFactorDevices = new Map<string, TwoFactorDevice>();
-  private backupCodes = new Map<string, BackupCode[]>();
-  private emailVerificationTokens = new Map<string, EmailVerificationToken>();
-  private emailTokenAttempts = new Map<string, number>();
-  private ssoProviders = new Map<string, unknown>();
-  private ssoLinks = new Map<string, SSOLink>();
-  private ssoSessions = new Map<string, SSOSession>();
-  private tenantSAMLConfigs = new Map<string, unknown>();
-  private userRoles = new Map<string, string[]>();
-  private twoFactorSessions = new Map<string, unknown>();
+  private readonly users = new Map<string, UserRecord>();
+  private readonly usersByEmail = new Map<string, UserRecord>();
+  private readonly usersByOAuth = new Map<string, UserRecord>();
+  private readonly sessions = new Map<string, SessionRecord>();
+  private readonly apiKeys = new Map<string, ApiKeyRecord>();
+  private readonly apiKeysByHash = new Map<string, ApiKeyRecord>();
+  private readonly organizations = new Map<string, OrganizationRecord>();
+  private readonly roles = new Map<string, RoleRecord>();
+  private readonly twoFactorDevices = new Map<string, TwoFactorDevice>();
+  private readonly backupCodes = new Map<string, BackupCode[]>();
+  private readonly emailVerificationTokens = new Map<string, EmailVerificationToken>();
+  private readonly emailTokenAttempts = new Map<string, number>();
+  private readonly ssoProviders = new Map<string, unknown>();
+  private readonly ssoLinks = new Map<string, SSOLink>();
+  private readonly ssoSessions = new Map<string, SSOSession>();
+  private readonly tenantSAMLConfigs = new Map<string, unknown>();
+  private readonly userRoles = new Map<string, string[]>();
+  private readonly twoFactorSessions = new Map<string, unknown>();
   private events: AuthEvent[] = [];
 
   async connect(): Promise<void> {
@@ -283,7 +282,7 @@ export class MemoryStorageAdapter implements StorageAdapter {
 
   async deleteUser(id: string): Promise<void> {
     const user = this.users.get(id);
-    if (user && user.email) {
+    if (user?.email) {
       this.usersByEmail.delete(user.email.toLowerCase());
     }
     this.users.delete(id);

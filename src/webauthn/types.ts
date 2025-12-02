@@ -11,7 +11,7 @@ export type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'internal';
 /**
  * WebAuthn device/credential
  */
-export interface WebAuthnDevice {
+export type WebAuthnDevice = {
   id: string;
   userId: string;
   name: string;
@@ -22,12 +22,12 @@ export interface WebAuthnDevice {
   createdAt: Date;
   lastUsedAt?: Date;
   verified: boolean;
-}
+};
 
 /**
  * WebAuthn registration options
  */
-export interface WebAuthnRegistrationOptions {
+export type WebAuthnRegistrationOptions = {
   challenge: string;
   rp: {
     name: string;
@@ -54,12 +54,12 @@ export interface WebAuthnRegistrationOptions {
     userVerification?: 'required' | 'preferred' | 'discouraged';
     requireResidentKey?: boolean;
   };
-}
+};
 
 /**
  * WebAuthn authentication options
  */
-export interface WebAuthnAuthenticationOptions {
+export type WebAuthnAuthenticationOptions = {
   challenge: string;
   timeout?: number;
   rpId?: string;
@@ -69,34 +69,34 @@ export interface WebAuthnAuthenticationOptions {
     transports?: AuthenticatorTransport[];
   }>;
   userVerification?: 'required' | 'preferred' | 'discouraged';
-}
+};
 
 /**
  * WebAuthn credential creation result
  */
-export interface WebAuthnCredentialCreation {
+export type WebAuthnCredentialCreation = {
   credentialId: string;
   publicKey: string;
   attestationObject: string;
   clientDataJSON: string;
   transports?: AuthenticatorTransport[];
-}
+};
 
 /**
  * WebAuthn credential assertion result
  */
-export interface WebAuthnCredentialAssertion {
+export type WebAuthnCredentialAssertion = {
   credentialId: string;
   authenticatorData: string;
   clientDataJSON: string;
   signature: string;
   userHandle?: string;
-}
+};
 
 /**
  * WebAuthn configuration
  */
-export interface WebAuthnConfig {
+export type WebAuthnConfig = {
   enabled: boolean;
   rpName: string;
   rpId?: string;
@@ -108,4 +108,4 @@ export interface WebAuthnConfig {
     userVerification?: 'required' | 'preferred' | 'discouraged';
     requireResidentKey?: boolean;
   };
-}
+};

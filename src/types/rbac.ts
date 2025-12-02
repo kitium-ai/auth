@@ -1,15 +1,15 @@
 // Enhanced RBAC (Role-Based Access Control) types
 
-export interface Permission {
+export type Permission = {
   id: string;
   name: string;
   description?: string;
   resource: string;
   action: string; // e.g., 'read', 'write', 'delete', 'admin'
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface Role {
+export type Role = {
   id: string;
   orgId: string;
   name: string;
@@ -18,31 +18,31 @@ export interface Role {
   isSystem?: boolean; // System roles cannot be modified
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface CustomRole {
+export type CustomRole = {
   id: string;
   orgId: string;
   userId: string;
   roleId: string;
   role: Role;
   assignedAt: Date;
-}
+};
 
-export interface PermissionCheck {
+export type PermissionCheck = {
   resource: string;
   action: string;
   orgId?: string;
-}
+};
 
-export interface RBACConfig {
+export type RBACConfig = {
   enabled: boolean;
   defaultRoles?: string[]; // IDs of default roles to assign
   customRolesAllowed?: boolean;
   hierarchySupport?: boolean;
-}
+};
 
-export interface RoleRecord {
+export type RoleRecord = {
   id: string;
   orgId: string;
   name: string;
@@ -52,12 +52,12 @@ export interface RoleRecord {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface CustomRoleRecord {
+export type CustomRoleRecord = {
   id: string;
   orgId: string;
   userId: string;
   roleId: string;
   assignedAt: Date;
-}
+};

@@ -3,9 +3,16 @@
  * Manages event hooks and handlers
  */
 
-import { nanoid } from 'nanoid';
 import { createLogger } from '@kitiumai/logger';
-import { HookManager, HookRegistration, HookEventType, HookContext, HookHandler } from './types';
+import { nanoid } from 'nanoid';
+
+import type {
+  HookContext,
+  HookEventType,
+  HookHandler,
+  HookManager,
+  HookRegistration,
+} from './types';
 
 const logger = createLogger();
 
@@ -13,13 +20,13 @@ const logger = createLogger();
  * Hook Manager implementation
  */
 export class HookManagerImpl implements HookManager {
-  private hooks: Map<string, HookRegistration> = new Map();
-  private eventHooks: Map<HookEventType, Set<string>> = new Map();
+  private readonly hooks: Map<string, HookRegistration> = new Map();
+  private readonly eventHooks: Map<HookEventType, Set<string>> = new Map();
 
   /**
    * Register a hook handler
    */
-  on<T = unknown>(event: HookEventType, handler: HookHandler<T>, priority: number = 100): string {
+  on<T = unknown>(event: HookEventType, handler: HookHandler<T>, priority = 100): string {
     const hookId = `hook_${nanoid()}`;
     const registration: HookRegistration = {
       id: hookId,
@@ -43,17 +50,17 @@ export class HookManagerImpl implements HookManager {
   /**
    * Register a one-time hook handler
    */
-  once<T = unknown>(event: HookEventType, handler: HookHandler<T>, priority: number = 100): string {
-    const hookIdRef: { current: string | null } = { current: null };
+  once<T = unknown>(event: HookEventType, handler: HookHandler<T>, priority = 100): string {
+    const hookIdReference: { current: string | null } = { current: null };
     const wrappedHandler: HookHandler<T> = async (context, data) => {
       await handler(context, data);
-      if (hookIdRef.current) {
-        this.off(hookIdRef.current);
+      if (hookIdReference.current) {
+        this.off(hookIdReference.current);
       }
     };
 
-    hookIdRef.current = this.on(event, wrappedHandler, priority);
-    return hookIdRef.current;
+    hookIdReference.current = this.on(event, wrappedHandler, priority);
+    return hookIdReference.current;
   }
 
   /**

@@ -1,28 +1,29 @@
-/* eslint-disable no-restricted-imports */
-import { nanoid } from 'nanoid';
 import { createLogger } from '@kitiumai/logger';
-import {
-  SSOConfig,
+import { nanoid } from 'nanoid';
+
+import { NotFoundError, ValidationError } from '../errors';
+
+import type {
   OIDCProvider,
-  SAMLProvider,
-  SSOSession,
-  SSOLink,
   OIDCTokenResponse,
   OIDCUserInfo,
+  SAMLProvider,
+  SSOConfig,
+  SSOLink,
   SSOProviderType,
+  SSOSession,
   StorageAdapter,
 } from '../types';
-import { ValidationError, NotFoundError } from '../errors';
 
 /**
  * SSO (Single Sign-On) Service
  * Manages OIDC providers, SAML, and multi-provider SSO sessions
  */
 export class SSOService {
-  private storage: StorageAdapter;
-  private config: SSOConfig;
-  private jwtSecret: string;
-  private logger = createLogger();
+  private readonly storage: StorageAdapter;
+  private readonly config: SSOConfig;
+  private readonly jwtSecret: string;
+  private readonly logger = createLogger();
 
   constructor(storage: StorageAdapter, jwtSecret: string, config: SSOConfig = { enabled: false }) {
     this.storage = storage;
@@ -151,7 +152,7 @@ export class SSOService {
   /**
    * List all SSO providers (optionally filtered by org)
    */
-  async listProviders(orgId?: string): Promise<(OIDCProvider | SAMLProvider)[]> {
+  async listProviders(orgId?: string): Promise<Array<OIDCProvider | SAMLProvider>> {
     if (!this.storage.listSSOProviders) {
       return [];
     }
@@ -169,7 +170,7 @@ export class SSOService {
     redirectUri?: string
   ): Promise<string> {
     const provider = (await this.getProvider(providerId)) as OIDCProvider | null;
-    if (!provider || provider.type !== 'oidc') {
+    if (provider?.type !== 'oidc') {
       throw new NotFoundError({
         code: 'auth/oidc_provider_not_found',
         message: `OIDC provider not found: ${providerId}`,
@@ -180,19 +181,18 @@ export class SSOService {
     // Fetch OIDC metadata
     const metadata = await this.fetchOIDCMetadata(provider.metadata_url);
 
-    const params = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+    const parameters = new URLSearchParams({
       client_id: provider.client_id,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       redirect_uri: redirectUri || provider.redirect_uris[0],
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       response_type: provider.response_type || 'code',
       scope: (provider.scopes || ['openid', 'profile', 'email']).join(' '),
       state,
       nonce,
     });
 
-    return `${metadata.authorization_endpoint}?${params.toString()}`;
+    return `${metadata.authorization_endpoint}?${parameters.toString()}`;
   }
 
   /**
@@ -204,7 +204,7 @@ export class SSOService {
     _redirectUri: string
   ): Promise<OIDCTokenResponse & { userInfo: OIDCUserInfo }> {
     const provider = (await this.getProvider(providerId)) as OIDCProvider | null;
-    if (!provider || provider.type !== 'oidc') {
+    if (provider?.type !== 'oidc') {
       throw new NotFoundError({
         code: 'auth/oidc_provider_not_found',
         message: `OIDC provider not found: ${providerId}`,
@@ -229,11 +229,10 @@ export class SSOService {
 
     // Mock response for now
     const tokenResponse: OIDCTokenResponse = {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       access_token: 'mock_access_token',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       token_type: 'Bearer',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       expires_in: 3600,
     };
 
@@ -266,7 +265,7 @@ export class SSOService {
       sub: `${provider.id}_user_${nanoid()}`,
       name: 'Test User',
       email: 'test@example.com',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       email_verified: true,
       picture: 'https://example.com/photo.jpg',
     };
@@ -279,13 +278,12 @@ export class SSOService {
     // In production, cache this and implement refresh logic
     // For now, return mock metadata
     return {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       authorization_endpoint: 'https://provider.example.com/authorize',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       token_endpoint: 'https://provider.example.com/token',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       userinfo_endpoint: 'https://provider.example.com/userinfo',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       jwks_uri: 'https://provider.example.com/.well-known/jwks.json',
       issuer: 'https://provider.example.com',
     };
@@ -299,7 +297,7 @@ export class SSOService {
     providerId: string,
     providerSubject: string,
     providerEmail?: string,
-    autoProvisioned: boolean = false
+    autoProvisioned = false
   ): Promise<SSOLink> {
     const provider = await this.getProvider(providerId);
     if (!provider) {

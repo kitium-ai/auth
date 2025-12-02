@@ -1,18 +1,18 @@
-/* eslint-disable no-restricted-imports */
-import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '@kitiumai/logger';
-import { RBACService } from '../rbac/service';
+import type { NextFunction, Request, Response } from 'express';
+
 import { AuthorizationError } from '../errors';
+import type { RBACService } from '../rbac/service';
 
 /**
  * RBAC Middleware for Express.js
  * Enforces role-based access control on routes
  */
 
-export interface RBACMiddlewareOptions {
+export type RBACMiddlewareOptions = {
   rbacService: RBACService;
-  orgIdExtractor?: (req: Request) => string | undefined;
-}
+  orgIdExtractor?: (request: Request) => string | undefined;
+};
 
 /**
  * Require specific role for route access
@@ -20,12 +20,12 @@ export interface RBACMiddlewareOptions {
 export function requireRole(
   roleNames: string[],
   options: RBACMiddlewareOptions
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
+): (request: Request, res: Response, next: NextFunction) => Promise<void> {
   const logger = createLogger();
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string; orgId?: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string; orgId?: string } }).user;
+      if (!user?.id) {
         logger.warn('Role check attempted but user not authenticated', { roles: roleNames });
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
@@ -35,7 +35,7 @@ export function requireRole(
         });
       }
 
-      const orgId = options.orgIdExtractor?.(req) || user.orgId;
+      const orgId = options.orgIdExtractor?.(request) || user.orgId;
       if (!orgId) {
         throw new AuthorizationError({
           code: 'auth/org_not_found',
@@ -72,12 +72,12 @@ export function requirePermission(
   resource: string,
   action: string,
   options: RBACMiddlewareOptions
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
+): (request: Request, res: Response, next: NextFunction) => Promise<void> {
   const logger = createLogger();
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string; orgId?: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string; orgId?: string } }).user;
+      if (!user?.id) {
         logger.warn('Permission check attempted but user not authenticated', { resource, action });
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
@@ -89,7 +89,7 @@ export function requirePermission(
 
       logger.debug('Checking permission', { userId: user.id, resource, action });
 
-      const orgId = options.orgIdExtractor?.(req) || user.orgId;
+      const orgId = options.orgIdExtractor?.(request) || user.orgId;
 
       const hasPermission = await options.rbacService.hasPermission(user.id, {
         resource,
@@ -120,11 +120,11 @@ export function requirePermission(
 export function requireAnyPermission(
   checks: Array<{ resource: string; action: string }>,
   options: RBACMiddlewareOptions
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async (req: Request, res: Response, next: NextFunction) => {
+): (request: Request, res: Response, next: NextFunction) => Promise<void> {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string; orgId?: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string; orgId?: string } }).user;
+      if (!user?.id) {
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -133,7 +133,7 @@ export function requireAnyPermission(
         });
       }
 
-      const orgId = options.orgIdExtractor?.(req) || user.orgId;
+      const orgId = options.orgIdExtractor?.(request) || user.orgId;
 
       const hasPermission = await options.rbacService.hasAnyPermission(
         user.id,
@@ -162,11 +162,11 @@ export function requireAnyPermission(
 export function requireAllPermissions(
   checks: Array<{ resource: string; action: string }>,
   options: RBACMiddlewareOptions
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async (req: Request, res: Response, next: NextFunction) => {
+): (request: Request, res: Response, next: NextFunction) => Promise<void> {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string; orgId?: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string; orgId?: string } }).user;
+      if (!user?.id) {
         throw new AuthorizationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -175,7 +175,7 @@ export function requireAllPermissions(
         });
       }
 
-      const orgId = options.orgIdExtractor?.(req) || user.orgId;
+      const orgId = options.orgIdExtractor?.(request) || user.orgId;
 
       const hasPermission = await options.rbacService.hasAllPermissions(
         user.id,
@@ -203,15 +203,15 @@ export function requireAllPermissions(
  */
 export function enrichUserContext(
   options: RBACMiddlewareOptions
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async (req: Request, res: Response, next: NextFunction) => {
+): (request: Request, res: Response, next: NextFunction) => Promise<void> {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string; orgId?: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string; orgId?: string } }).user;
+      if (!user?.id) {
         return next();
       }
 
-      const orgId = options.orgIdExtractor?.(req) || user.orgId;
+      const orgId = options.orgIdExtractor?.(request) || user.orgId;
       if (!orgId) {
         return next();
       }
@@ -225,7 +225,9 @@ export function enrichUserContext(
         permissions,
       };
       (
-        req as { user?: { id: string; orgId?: string; roles?: unknown[]; permissions?: unknown[] } }
+        request as {
+          user?: { id: string; orgId?: string; roles?: unknown[]; permissions?: unknown[] };
+        }
       ).user = enrichedUser;
 
       next();

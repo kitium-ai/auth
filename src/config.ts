@@ -1,95 +1,105 @@
 /**
  * Auth configuration system
  * Environment-aware configuration for authentication
+ * Uses @kitiumai/error for validation and structured error handling
  */
 
-import { ValidationError } from '@kitiumai/error';
+import { createError } from './errors';
+
+/**
+ * Configuration validation result
+ */
+export type ValidationResult = {
+  valid: boolean;
+  errors: string[];
+  warnings?: string[];
+};
 
 /**
  * Auth provider configuration
  */
-export interface AuthProvider {
+export type AuthProvider = {
   id: string;
   name: string;
   type: 'oauth' | 'email' | 'saml';
   enabled: boolean;
   config?: Record<string, unknown>;
-}
+};
 
 /**
  * Storage configuration
  */
-export interface StorageConfig {
+export type StorageConfig = {
   type: 'memory' | 'postgres' | 'mongodb' | 'custom';
   connectionString?: string;
   options?: Record<string, unknown>;
-}
+};
 
 /**
  * Billing configuration
  */
-export interface BillingConfig {
+export type BillingConfig = {
   enabled: boolean;
   provider?: 'stripe' | 'custom';
   apiKey?: string;
   webhookSecret?: string;
-}
+};
 
 /**
  * Billing product definition
  */
-export interface BillingProduct {
+export type BillingProduct = {
   id: string;
   name: string;
   description?: string;
   features: string[];
   price?: number;
   currency?: string;
-}
+};
 
 /**
  * API key configuration
  */
-export interface ApiKeyConfig {
+export type ApiKeyConfig = {
   enabled: boolean;
   expirationDays?: number;
   rotationRequired?: boolean;
-}
+};
 
 /**
  * Session configuration
  */
-export interface SessionConfig {
+export type SessionConfig = {
   enabled: boolean;
   expirationMinutes?: number;
   refreshTokenExpirationDays?: number;
   sameSite?: 'strict' | 'lax' | 'none';
   secure?: boolean;
   httpOnly?: boolean;
-}
+};
 
 /**
  * Organization configuration
  */
-export interface OrganizationConfig {
+export type OrganizationConfig = {
   enabled: boolean;
   multiTenant?: boolean;
   defaultRole?: string;
-}
+};
 
 /**
  * Event configuration
  */
-export interface EventConfig {
+export type EventConfig = {
   enabled: boolean;
   webhookUrl?: string;
   events?: string[];
-}
+};
 
 /**
  * Main auth configuration
  */
-export interface AuthConfig {
+export type AuthConfig = {
   appName: string;
   appUrl: string;
   apiUrl: string;
@@ -101,7 +111,7 @@ export interface AuthConfig {
   session?: SessionConfig;
   organization?: OrganizationConfig;
   events?: EventConfig;
-}
+};
 
 /**
  * Define auth configuration
@@ -229,49 +239,76 @@ export function createEventConfig(config: Partial<EventConfig>): EventConfig {
 }
 
 /**
- * Validate auth configuration
+ * Validate auth configuration with comprehensive checks
  */
-export function validateConfig(config: AuthConfig): { valid: boolean; errors: string[] } {
+export function validateConfig(config: AuthConfig): ValidationResult {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
+  // Required fields
   if (!config.appName) {
     errors.push('appName is required');
   }
 
   if (!config.appUrl) {
     errors.push('appUrl is required');
+  } else {
+    // Validate URL format
+    try {
+      new URL(config.appUrl);
+    } catch {
+      errors.push('appUrl must be a valid URL');
+    }
   }
 
   if (!config.jwtSecret) {
     errors.push('jwtSecret is required');
   }
 
+  // Security validations
   if (config.jwtSecret && config.jwtSecret.length < 32) {
-    errors.push('jwtSecret must be at least 32 characters');
+    errors.push('jwtSecret must be at least 32 characters for adequate security');
   }
 
-  if (!config.storage || !config.storage.type) {
+  if (config.jwtSecret && config.jwtSecret === process.env['JWT_SECRET']) {
+    warnings.push('jwtSecret appears to be from environment - ensure it is changed in production');
+  }
+
+  if (!config.storage?.type) {
     errors.push('storage configuration is required');
+  }
+
+  // Session configuration validation
+  if (config.session?.secure === false && process.env['NODE_ENV'] === 'production') {
+    warnings.push('session.secure should be true in production for HTTPS');
+  }
+
+  if (config.session?.httpOnly === false) {
+    warnings.push('session.httpOnly should be true to prevent XSS attacks');
+  }
+
+  // Provider validation
+  if (config.providers?.length === 0) {
+    warnings.push('No authentication providers configured - users cannot log in');
   }
 
   return {
     valid: errors.length === 0,
     errors,
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 
 /**
  * Get environment variable with optional requirement
+ * @throws ValidationError if required variable is missing
  */
-export function getEnvVar(name: string, required: boolean = false): string {
+export function getEnvVar(name: string, required = false): string {
   const value = process.env[name];
 
   if (required && !value) {
-    throw new ValidationError({
-      code: 'auth/missing_env_var',
+    throw createError('auth/missing_env_var', {
       message: `Environment variable ${name} is required`,
-      severity: 'error',
-      retryable: false,
       context: { name },
     });
   }
@@ -282,7 +319,7 @@ export function getEnvVar(name: string, required: boolean = false): string {
 /**
  * Get environment variable as number
  */
-export function getEnvVarAsNumber(name: string, defaultValue: number = 0): number {
+export function getEnvVarAsNumber(name: string, defaultValue = 0): number {
   const value = getEnvVar(name);
   return value ? Number.parseInt(value, 10) : defaultValue;
 }
@@ -290,7 +327,7 @@ export function getEnvVarAsNumber(name: string, defaultValue: number = 0): numbe
 /**
  * Get environment variable as boolean
  */
-export function getEnvVarAsBoolean(name: string, defaultValue: boolean = false): boolean {
+export function getEnvVarAsBoolean(name: string, defaultValue = false): boolean {
   const value = getEnvVar(name);
   if (!value) {
     return defaultValue;

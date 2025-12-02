@@ -5,19 +5,19 @@
 /**
  * Plugin interface
  */
-export interface Plugin {
+export type Plugin = {
   name: string;
   version: string;
   type: 'storage' | 'billing' | 'framework' | 'provider';
   setup: (context: PluginContext) => Promise<void>;
   teardown?: () => Promise<void>;
   hooks?: Record<string, (...args: unknown[]) => Promise<unknown> | unknown>;
-}
+};
 
 /**
  * Plugin context
  */
-export interface PluginContext {
+export type PluginContext = {
   appName: string;
   config: Record<string, unknown>;
   logger: {
@@ -27,15 +27,15 @@ export interface PluginContext {
     error: (message: string, data?: unknown) => void;
   };
   utils: Record<string, unknown>;
-}
+};
 
 /**
  * Plugin manager interface
  */
-export interface PluginManager {
+export type PluginManager = {
   register(plugin: Plugin): Promise<void>;
   unregister(pluginName: string): Promise<void>;
   get(pluginName: string): Plugin | undefined;
   getAll(): Plugin[];
   executeHook(hookName: string, ...args: unknown[]): Promise<unknown>;
-}
+};

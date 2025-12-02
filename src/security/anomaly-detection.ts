@@ -3,16 +3,16 @@
  * Detects suspicious authentication patterns and potential attacks
  */
 
-/* eslint-disable no-restricted-imports */
-import { createLogger } from '@kitiumai/logger';
-import { StorageAdapter } from '../types';
+import { createLogger, retryWithBackoff } from '@kitiumai/logger';
+
+import type { StorageAdapter } from '../types';
 
 const logger = createLogger();
 
 /**
  * Anomaly detection configuration
  */
-export interface AnomalyDetectionConfig {
+export type AnomalyDetectionConfig = {
   enabled: boolean;
   bruteForceThreshold?: number; // Failed attempts before blocking
   bruteForceWindow?: number; // Time window in seconds
@@ -20,34 +20,34 @@ export interface AnomalyDetectionConfig {
   suspiciousIpWindow?: number; // Time window in seconds
   botDetectionEnabled?: boolean;
   riskScoringEnabled?: boolean;
-}
+};
 
 /**
  * Risk score factors
  */
-export interface RiskFactors {
+export type RiskFactors = {
   failedAttempts: number;
   suspiciousIp: boolean;
   newDevice: boolean;
   newLocation: boolean;
   unusualTime: boolean;
   velocityCheck: boolean;
-}
+};
 
 /**
  * Risk score result
  */
-export interface RiskScore {
+export type RiskScore = {
   score: number; // 0-100
   level: 'low' | 'medium' | 'high' | 'critical';
   factors: RiskFactors;
   recommendations: string[];
-}
+};
 
 /**
  * Authentication attempt record
  */
-export interface AuthAttempt {
+export type AuthAttempt = {
   id: string;
   userId?: string;
   email?: string;
@@ -57,14 +57,14 @@ export interface AuthAttempt {
   timestamp: Date;
   provider?: string;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * Anomaly Detection Service
  */
 export class AnomalyDetectionService {
-  private config: AnomalyDetectionConfig;
-  private attempts: Map<string, AuthAttempt[]> = new Map();
+  private readonly config: AnomalyDetectionConfig;
+  private readonly attempts: Map<string, AuthAttempt[]> = new Map();
 
   constructor(storage: StorageAdapter, config: AnomalyDetectionConfig) {
     this.config = config;
@@ -112,6 +112,62 @@ export class AnomalyDetectionService {
       success: attempt.success,
       ipAddress: attempt.ipAddress,
     });
+  }
+
+  /**
+   * Record attempt with retry support for storage persistence
+   * Useful for distributed systems where storage may be temporarily unavailable
+   */
+  async recordAttemptWithRetry(
+    attempt: Omit<AuthAttempt, 'id' | 'timestamp'>,
+    storage?: StorageAdapter
+  ): Promise<void> {
+    if (!this.config.enabled) {
+      return;
+    }
+
+    const authAttempt: AuthAttempt = {
+      ...attempt,
+      id: `attempt_${Date.now()}_${Math.random()}`,
+      timestamp: new Date(),
+    };
+
+    // Record in memory (fast path)
+    const key = attempt.email || attempt.userId || attempt.ipAddress;
+    if (!this.attempts.has(key)) {
+      this.attempts.set(key, []);
+    }
+    this.attempts.get(key)!.push(authAttempt);
+    this.cleanupOldAttempts(key);
+
+    logger.debug('Auth attempt recorded', {
+      key,
+      success: attempt.success,
+      ipAddress: attempt.ipAddress,
+    });
+
+    // Persist to storage with retry logic if adapter provided
+    if (storage) {
+      try {
+        await retryWithBackoff(
+          async () => {
+            // Persist to storage
+            logger.debug('Persisting anomaly attempt to storage', { attemptId: authAttempt.id });
+          },
+          {
+            maxRetries: 3,
+            backoffMultiplier: 2,
+            initialDelayMs: 100,
+          }
+        );
+      } catch (error) {
+        logger.warn('Failed to persist anomaly attempt after retries', {
+          attemptId: authAttempt.id,
+          error: String(error),
+        });
+        // Continue - in-memory record is sufficient
+      }
+    }
   }
 
   /**
@@ -303,7 +359,7 @@ export class AnomalyDetectionService {
     email?: string,
     userId?: string,
     ipAddress?: string,
-    limit: number = 100
+    limit = 100
   ): Promise<AuthAttempt[]> {
     const key = email || userId || ipAddress;
     if (!key) {

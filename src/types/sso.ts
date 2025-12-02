@@ -1,17 +1,16 @@
 // Single Sign-On (SSO) types for enhanced OIDC and multi-provider support
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export type SSOProviderType = 'saml' | 'oidc' | 'oauth';
 
-export interface SSOConfig {
+export type SSOConfig = {
   enabled: boolean;
   allowMultipleProviders?: boolean; // Allow linking multiple SSO providers
   autoProvision?: boolean; // Auto-create users on first login
   defaultPlan?: string; // Plan to assign to auto-provisioned users
   syncUserData?: boolean; // Sync user profile data from provider
-}
+};
 
-export interface OIDCProvider {
+export type OIDCProvider = {
   id: string;
   type: 'oidc';
   name: string;
@@ -31,9 +30,9 @@ export interface OIDCProvider {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface SSOSAMLProvider {
+export type SSOSAMLProvider = {
   id: string;
   type: 'saml';
   name: string;
@@ -58,9 +57,9 @@ export interface SSOSAMLProvider {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface SSOSession {
+export type SSOSession = {
   id: string;
   userId: string;
   providerId: string;
@@ -70,9 +69,9 @@ export interface SSOSession {
   expiresAt: Date;
   linkedAt: Date;
   lastAuthAt: Date;
-}
+};
 
-export interface SSOLink {
+export type SSOLink = {
   id: string;
   userId: string;
   providerId: string;
@@ -83,9 +82,9 @@ export interface SSOLink {
   metadata?: Record<string, unknown>;
   linkedAt: Date;
   lastAuthAt: Date;
-}
+};
 
-export interface OIDCTokenResponse {
+export type OIDCTokenResponse = {
   access_token: string;
 
   token_type: string;
@@ -96,9 +95,9 @@ export interface OIDCTokenResponse {
 
   id_token?: string;
   scope?: string;
-}
+};
 
-export interface OIDCUserInfo {
+export type OIDCUserInfo = {
   sub: string;
   name?: string;
   email?: string;
@@ -106,16 +105,16 @@ export interface OIDCUserInfo {
   picture?: string;
   locale?: string;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface SAMLAssertion {
+export type SAMLAssertion = {
   nameID: string;
   sessionIndex?: string;
   notBefore?: Date;
   notOnOrAfter?: Date;
   attributes?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-}
+};
 
 // Database record types
 export type OIDCProviderRecord = OIDCProvider;

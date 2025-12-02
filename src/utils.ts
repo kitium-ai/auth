@@ -3,7 +3,8 @@
  * API key generation, hashing, and verification
  */
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
+
 import { createLogger } from '@kitiumai/logger';
 
 const logger = createLogger();
@@ -11,7 +12,7 @@ const logger = createLogger();
 /**
  * Generate a random API key
  */
-export function generateApiKey(prefix: string = 'api'): string {
+export function generateApiKey(prefix = 'api'): string {
   const randomBytes = crypto.randomBytes(32).toString('hex');
   return `${prefix}_${randomBytes}`;
 }
@@ -35,4 +36,11 @@ export function verifyApiKey(apiKey: string, hash: string): boolean {
     logger.debug('API key verification failed', { error: String(error) });
     return false;
   }
+}
+
+/**
+ * Generate a unique ID for records
+ */
+export function generateId(): string {
+  return crypto.randomUUID();
 }

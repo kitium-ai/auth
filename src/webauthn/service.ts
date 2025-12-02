@@ -3,20 +3,21 @@
  * Passwordless authentication using WebAuthn API
  */
 
-/* eslint-disable no-restricted-imports */
-import * as crypto from 'crypto';
-import { nanoid } from 'nanoid';
+import * as crypto from 'node:crypto';
+
 import { createLogger } from '@kitiumai/logger';
-import { StorageAdapter } from '../types';
-import { ValidationError, AuthenticationError } from '../errors';
-import {
-  WebAuthnDevice,
-  WebAuthnConfig,
-  WebAuthnRegistrationOptions,
-  WebAuthnAuthenticationOptions,
-  WebAuthnCredentialCreation,
-  WebAuthnCredentialAssertion,
+import { nanoid } from 'nanoid';
+
+import { AuthenticationError, ValidationError } from '../errors';
+import type { StorageAdapter } from '../types';
+import type {
   AuthenticatorTransport,
+  WebAuthnAuthenticationOptions,
+  WebAuthnConfig,
+  WebAuthnCredentialAssertion,
+  WebAuthnCredentialCreation,
+  WebAuthnDevice,
+  WebAuthnRegistrationOptions,
 } from './types';
 
 const logger = createLogger();
@@ -25,14 +26,16 @@ const logger = createLogger();
  * WebAuthn Service
  */
 export class WebAuthnService {
-  private storage: StorageAdapter;
-  private config: WebAuthnConfig;
+  private readonly storage: StorageAdapter;
+  private readonly config: WebAuthnConfig;
 
   getStorage(): StorageAdapter {
     return this.storage;
   }
-  private challenges: Map<string, { challenge: string; expiresAt: Date; userId?: string }> =
-    new Map();
+  private readonly challenges: Map<
+    string,
+    { challenge: string; expiresAt: Date; userId?: string }
+  > = new Map();
 
   constructor(storage: StorageAdapter, config: WebAuthnConfig) {
     this.storage = storage;
@@ -115,7 +118,7 @@ export class WebAuthnService {
     }
 
     const storedChallenge = this.challenges.get(challengeId);
-    if (!storedChallenge || storedChallenge.userId !== userId) {
+    if (storedChallenge?.userId !== userId) {
       throw new AuthenticationError({
         code: 'auth/invalid_challenge',
         message: 'Invalid or expired challenge',
@@ -217,7 +220,7 @@ export class WebAuthnService {
     }
 
     const storedChallenge = this.challenges.get(challengeId);
-    if (!storedChallenge || storedChallenge.userId !== userId) {
+    if (storedChallenge?.userId !== userId) {
       throw new AuthenticationError({
         code: 'auth/invalid_challenge',
         message: 'Invalid or expired challenge',

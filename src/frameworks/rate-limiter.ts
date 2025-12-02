@@ -3,27 +3,25 @@
  * Track and limit request rates
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-restricted-imports */
 import { RateLimitError } from '../errors';
 
 /**
  * Rate limit store entry
  */
-interface RateLimitEntry {
+type RateLimitEntry = {
   count: number;
   resetAt: number;
-}
+};
 
 /**
  * Rate limiter
  */
 export class RateLimiter {
-  private store = new Map<string, RateLimitEntry>();
+  private readonly store = new Map<string, RateLimitEntry>();
 
   constructor(
-    private maxRequests: number = 100,
-    private windowMs: number = 60000 // 1 minute
+    private readonly maxRequests = 100,
+    private readonly windowMs = 60000 // 1 minute
   ) {}
 
   /**

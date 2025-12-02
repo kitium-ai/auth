@@ -4,14 +4,15 @@
  */
 
 import { createLogger } from '@kitiumai/logger';
-import { Plugin, PluginContext, PluginManager } from './types';
+
+import type { Plugin, PluginContext, PluginManager } from './types';
 
 /**
  * KitiumPluginManager implementation
  */
 export class KitiumPluginManager implements PluginManager {
-  private plugins = new Map<string, Plugin>();
-  private logger = createLogger();
+  private readonly plugins = new Map<string, Plugin>();
+  private readonly logger = createLogger();
 
   /**
    * Register a plugin

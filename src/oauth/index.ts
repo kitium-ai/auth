@@ -3,23 +3,23 @@
  * PKCE, state management, and token handling
  */
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 /**
  * OAuth state for preventing CSRF attacks
  */
-export interface OAuthState {
+export type OAuthState = {
   state: string;
   nonce: string;
   redirectUri: string;
   createdAt: Date;
   expiresAt: Date;
-}
+};
 
 /**
  * OAuth authorization request
  */
-export interface OAuthAuthorizationRequest {
+export type OAuthAuthorizationRequest = {
   clientId: string;
   redirectUri: string;
   scopes: string[];
@@ -27,20 +27,20 @@ export interface OAuthAuthorizationRequest {
   nonce?: string;
   codeChallenge?: string;
   codeChallengeMethod?: 'S256' | 'plain';
-}
+};
 
 /**
  * OAuth token response
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-export interface OAuthTokenResponse {
+
+export type OAuthTokenResponse = {
   access_token: string;
   token_type: string;
   expires_in?: number;
   refresh_token?: string;
   scope?: string;
   id_token?: string;
-}
+};
 
 /**
  * PKCE Code Verifier and Challenge generator
@@ -85,7 +85,7 @@ export class OAuthManager {
   /**
    * Generate OAuth state
    */
-  static generateState(expiresInMinutes: number = 10): OAuthState {
+  static generateState(expiresInMinutes = 10): OAuthState {
     const state = crypto.randomBytes(32).toString('hex');
     const nonce = crypto.randomBytes(32).toString('hex');
     const createdAt = new Date();
@@ -117,7 +117,7 @@ export class OAuthManager {
     authorizationEndpoint: string,
     request: OAuthAuthorizationRequest
   ): string {
-    const params = new URLSearchParams({
+    const parameters = new URLSearchParams({
       client_id: request.clientId,
 
       redirect_uri: request.redirectUri,
@@ -128,14 +128,14 @@ export class OAuthManager {
     });
 
     if (request.nonce) {
-      params.append('nonce', request.nonce);
+      parameters.append('nonce', request.nonce);
     }
 
     if (request.codeChallenge && request.codeChallengeMethod) {
-      params.append('code_challenge', request.codeChallenge);
-      params.append('code_challenge_method', request.codeChallengeMethod);
+      parameters.append('code_challenge', request.codeChallenge);
+      parameters.append('code_challenge_method', request.codeChallengeMethod);
     }
 
-    return `${authorizationEndpoint}?${params.toString()}`;
+    return `${authorizationEndpoint}?${parameters.toString()}`;
   }
 }

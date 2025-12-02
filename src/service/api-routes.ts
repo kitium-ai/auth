@@ -1,19 +1,19 @@
-/* eslint-disable no-restricted-imports */
 import { Router } from 'express';
-import type { AuthCore } from '../core';
+
 import type { AuthProvider } from '../config';
-import { EmailAuthService } from '../email/service';
-import { EmailVerificationManager } from '../email/verification';
+import type { AuthCore } from '../core';
 import { createEmailRoutes } from '../email/routes';
+import type { EmailAuthService } from '../email/service';
+import type { EmailVerificationManager } from '../email/verification';
 import { createOAuthRoutes } from '../frameworks/oauth-routes';
 
-export interface CreateApiRoutesOptions {
+export type CreateApiRoutesOptions = {
   auth: AuthCore;
   providers?: AuthProvider[];
   emailService?: EmailAuthService;
   verificationManager?: EmailVerificationManager;
   basePath?: string;
-}
+};
 
 export async function createApiRoutes(options: CreateApiRoutesOptions): Promise<Router[]> {
   const routers: Router[] = [];
@@ -35,8 +35,8 @@ export async function createApiRoutes(options: CreateApiRoutesOptions): Promise<
   }
 
   const healthRouter = Router();
-  healthRouter.get('/healthz', (_req, res) => {
-    res.json({ status: 'ok' });
+  healthRouter.get('/healthz', (_request, response) => {
+    response.json({ status: 'ok' });
   });
   routers.push(healthRouter);
 

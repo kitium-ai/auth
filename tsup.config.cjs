@@ -10,7 +10,7 @@ module.exports = defineConfig({
   splitting: false,
   target: 'es2020',
   platform: 'node',
-  external: ['esbuild'],
+  external: ['esbuild', 'react', 'react-dom'],
   esbuildOptions(options) {
     options.logOverride = { 'require-resolve-not-external': 'silent' };
   },

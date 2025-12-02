@@ -22,62 +22,62 @@ export type ConditionalAccessPolicyType =
 /**
  * Location-based policy
  */
-export interface LocationPolicy {
+export type LocationPolicy = {
   type: 'location';
   allowedCountries?: string[]; // ISO 3166-1 alpha-2 codes
   blockedCountries?: string[];
   allowedRegions?: string[];
   blockedRegions?: string[];
-}
+};
 
 /**
  * Device-based policy
  */
-export interface DevicePolicy {
+export type DevicePolicy = {
   type: 'device';
   requireDeviceTrust?: boolean;
   allowedDeviceIds?: string[];
   blockedDeviceIds?: string[];
   requireDeviceRegistration?: boolean;
-}
+};
 
 /**
  * Time-based policy
  */
-export interface TimePolicy {
+export type TimePolicy = {
   type: 'time';
   allowedDays?: number[]; // 0 = Sunday, 6 = Saturday
-  allowedHours?: { start: number; end: number }[]; // 0-23
+  allowedHours?: Array<{ start: number; end: number }>; // 0-23
   timezone?: string;
-}
+};
 
 /**
  * IP range policy
  */
-export interface IpRangePolicy {
+export type IpRangePolicy = {
   type: 'ip_range';
   allowedIpRanges?: string[]; // CIDR notation
   blockedIpRanges?: string[];
-}
+};
 
 /**
  * MFA requirement policy
  */
-export interface MfaRequiredPolicy {
+export type MfaRequiredPolicy = {
   type: 'mfa_required';
   requireMfa: boolean;
-  mfaMethods?: ('totp' | 'sms' | 'webauthn')[];
-}
+  mfaMethods?: Array<'totp' | 'sms' | 'webauthn'>;
+};
 
 /**
  * Risk level policy
  */
-export interface RiskLevelPolicy {
+export type RiskLevelPolicy = {
   type: 'risk_level';
   maxRiskLevel: 'low' | 'medium' | 'high' | 'critical';
   requireMfaForHighRisk?: boolean;
   blockCriticalRisk?: boolean;
-}
+};
 
 /**
  * Conditional access policy
@@ -93,7 +93,7 @@ export type ConditionalAccessPolicy =
 /**
  * Policy evaluation context
  */
-export interface PolicyEvaluationContext {
+export type PolicyEvaluationContext = {
   userId: string;
   orgId?: string;
   ipAddress?: string;
@@ -105,12 +105,12 @@ export interface PolicyEvaluationContext {
   timestamp?: Date;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';
   mfaMethods?: string[];
-}
+};
 
 /**
  * Policy evaluation result
  */
-export interface PolicyEvaluationResult {
+export type PolicyEvaluationResult = {
   allowed: boolean;
   reason?: string;
   requiredActions?: string[];
@@ -119,13 +119,13 @@ export interface PolicyEvaluationResult {
     allowed: boolean;
     reason?: string;
   }>;
-}
+};
 
 /**
  * Conditional Access Service
  */
 export class ConditionalAccessService {
-  private policies: Map<string, ConditionalAccessPolicy[]> = new Map();
+  private readonly policies: Map<string, ConditionalAccessPolicy[]> = new Map();
 
   /**
    * Add a policy for an organization or user
@@ -190,7 +190,7 @@ export class ConditionalAccessService {
     }
 
     const results: PolicyEvaluationResult['policies'] = [];
-    let allowed = true;
+    let isAllowed = true;
     const requiredActions: string[] = [];
 
     for (const policy of policies) {
@@ -202,7 +202,7 @@ export class ConditionalAccessService {
       });
 
       if (!result.allowed) {
-        allowed = false;
+        isAllowed = false;
       }
 
       if (result.requiredActions) {
@@ -211,8 +211,8 @@ export class ConditionalAccessService {
     }
 
     return {
-      allowed,
-      reason: allowed ? undefined : 'One or more policies blocked access',
+      allowed: isAllowed,
+      reason: isAllowed ? undefined : 'One or more policies blocked access',
       requiredActions: requiredActions.length > 0 ? requiredActions : undefined,
       policies: results,
     };

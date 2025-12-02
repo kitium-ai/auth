@@ -1,10 +1,9 @@
-import baseConfig from '@kitiumai/config/vitest.config.base.js';
 import { defineConfig } from 'vitest/config';
+import { nodePreset } from '@kitiumai/vitest-helpers/setup/presets';
 
 export default defineConfig({
-  ...baseConfig,
   test: {
-    ...baseConfig.test,
+    ...nodePreset,
     globals: true,
     environment: 'node',
     exclude: [
@@ -16,7 +15,13 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      reporter: ['text', 'html', 'json'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90,
+      },
       exclude: [
         '**/*.test.ts',
         '**/*.spec.ts',

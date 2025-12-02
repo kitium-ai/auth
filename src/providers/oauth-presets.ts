@@ -3,10 +3,9 @@
  * Common OAuth providers with default configurations
  */
 
-/* eslint-disable no-restricted-imports */
-import { AuthProvider } from '../config';
+import type { AuthProvider } from '../config';
 
-export interface OAuthProviderPreset {
+export type OAuthProviderPreset = {
   id: string;
   name: string;
   authorizationUrl: string;
@@ -14,7 +13,7 @@ export interface OAuthProviderPreset {
   userInfoUrl: string;
   scopes: string[];
   defaultScopes: string[];
-}
+};
 
 /**
  * Google OAuth 2.0 provider preset

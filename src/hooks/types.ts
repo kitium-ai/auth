@@ -3,8 +3,7 @@
  * Event-driven extensibility for authentication flows
  */
 
-/* eslint-disable no-restricted-imports */
-import { UserRecord, SessionRecord, ApiKeyRecord, OrganizationRecord } from '../types';
+import type { ApiKeyRecord, OrganizationRecord, SessionRecord, UserRecord } from '../types';
 
 /**
  * Hook event types
@@ -45,7 +44,7 @@ export type HookEventType =
 /**
  * Hook context with event data
  */
-export interface HookContext {
+export type HookContext = {
   event: HookEventType;
   timestamp: Date;
   userId?: string;
@@ -53,52 +52,52 @@ export interface HookContext {
   ipAddress?: string;
   userAgent?: string;
   metadata?: Record<string, unknown>;
-}
+};
 
 /**
  * User-related hook data
  */
-export interface UserHookData {
+export type UserHookData = {
   user: UserRecord;
   previousUser?: UserRecord;
-}
+};
 
 /**
  * Session-related hook data
  */
-export interface SessionHookData {
+export type SessionHookData = {
   session: SessionRecord;
   previousSession?: SessionRecord;
-}
+};
 
 /**
  * API key-related hook data
  */
-export interface ApiKeyHookData {
+export type ApiKeyHookData = {
   apiKey: ApiKeyRecord;
   previousApiKey?: ApiKeyRecord;
-}
+};
 
 /**
  * Organization-related hook data
  */
-export interface OrganizationHookData {
+export type OrganizationHookData = {
   organization: OrganizationRecord;
   previousOrganization?: OrganizationRecord;
   memberId?: string;
   roleId?: string;
-}
+};
 
 /**
  * Authentication-related hook data
  */
-export interface AuthHookData {
+export type AuthHookData = {
   userId: string;
   email?: string;
   provider?: string;
   success: boolean;
   reason?: string;
-}
+};
 
 /**
  * Hook handler function type
@@ -108,18 +107,18 @@ export type HookHandler<T = unknown> = (context: HookContext, data: T) => Promis
 /**
  * Hook registration
  */
-export interface HookRegistration {
+export type HookRegistration = {
   id: string;
   event: HookEventType;
   handler: HookHandler;
   priority?: number; // Lower numbers execute first
   enabled?: boolean;
-}
+};
 
 /**
  * Hook manager interface
  */
-export interface HookManager {
+export type HookManager = {
   /**
    * Register a hook handler
    */
@@ -149,4 +148,4 @@ export interface HookManager {
    * Clear all hooks for an event
    */
   clear(event?: HookEventType): void;
-}
+};

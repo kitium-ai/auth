@@ -1,30 +1,30 @@
-/* eslint-disable no-restricted-imports */
-import { Request, Response, NextFunction } from 'express';
 import { createLogger } from '@kitiumai/logger';
-import { TwoFactorAuthService } from '../twofa/service';
+import type { NextFunction, Request, Response } from 'express';
+
 import { AuthenticationError, ValidationError } from '../errors';
+import type { TwoFactorAuthService } from '../twofa/service';
 
 /**
  * 2FA Middleware for Express.js
  * Enforces two-factor authentication for protected routes
  */
 
-export interface TwoFAMiddlewareOptions {
+export type TwoFAMiddlewareOptions = {
   twoFAService: TwoFactorAuthService;
   skipRoutes?: string[]; // Routes that don't require 2FA
   rememberDeviceDays?: number; // Days to remember device (default: 30)
-}
+};
 
 /**
  * Require 2FA for route access
  */
 export function require2FA(options: TwoFAMiddlewareOptions) {
   const logger = createLogger();
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string } }).user;
-      if (!user || !user.id) {
-        logger.warn('2FA required but user not authenticated', { path: req.path });
+      const user = (request as { user?: { id: string } }).user;
+      if (!user?.id) {
+        logger.warn('2FA required but user not authenticated', { path: request.path });
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -34,7 +34,7 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
       }
 
       // Check if route should skip 2FA check
-      if (options.skipRoutes?.some((route) => req.path.startsWith(route))) {
+      if (options.skipRoutes?.some((route) => request.path.startsWith(route))) {
         return next();
       }
 
@@ -47,11 +47,11 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
       }
 
       // Check if 2FA session is already completed
-      const twoFASessionId = req.cookies?.['_tfa_session'];
+      const twoFASessionId = request.cookies?.['_tfa_session'];
       if (twoFASessionId) {
         // Verify session is still valid
         const twoFASession = await options.twoFAService.getTwoFactorSession?.(twoFASessionId);
-        if (twoFASession && twoFASession.completedAt && new Date() < twoFASession.expiresAt) {
+        if (twoFASession?.completedAt && new Date() < twoFASession.expiresAt) {
           // 2FA already completed in this session
           return next();
         }
@@ -80,9 +80,9 @@ export function require2FA(options: TwoFAMiddlewareOptions) {
  */
 export function verify2FACode(options: TwoFAMiddlewareOptions) {
   const logger = createLogger();
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (request: Request, res: Response, next: NextFunction) => {
     try {
-      const { userId, deviceId, code, rememberDevice } = req.body;
+      const { userId, deviceId, code, rememberDevice } = request.body;
 
       if (!userId || !deviceId || !code) {
         logger.warn('2FA verification attempted with missing fields', { userId, deviceId });
@@ -108,7 +108,7 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
       }
 
       // Create 2FA session if verification succeeds
-      const sessionId = req.cookies?.['session_id'] || `session_${Date.now()}`;
+      const sessionId = request.cookies?.['session_id'] || `session_${Date.now()}`;
       const twoFASession = await options.twoFAService.createTwoFactorSession(
         userId,
         sessionId,
@@ -131,7 +131,7 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
       });
 
       (
-        req as {
+        request as {
           user?: {
             id: string;
             twoFAVerified?: boolean;
@@ -140,7 +140,7 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
           };
         }
       ).user = {
-        ...(req as { user?: { id: string } }).user,
+        ...(request as { user?: { id: string } }).user,
         twoFAVerified: true,
         twoFASessionId: twoFASession?.id,
         rememberDeviceUntil: rememberDays > 0 ? new Date(Date.now() + maxAge!) : undefined,
@@ -157,10 +157,10 @@ export function verify2FACode(options: TwoFAMiddlewareOptions) {
  * Initiate 2FA enrollment
  */
 export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, _next: NextFunction) => {
+  return async (request: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string } }).user;
+      if (!user?.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -169,7 +169,7 @@ export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
         });
       }
 
-      const { method, phoneNumber, name } = req.body;
+      const { method, phoneNumber, name } = request.body;
 
       if (!method || !['totp', 'sms'].includes(method)) {
         throw new ValidationError({
@@ -219,10 +219,10 @@ export function initiate2FAEnrollment(options: TwoFAMiddlewareOptions) {
  * Complete 2FA enrollment
  */
 export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, _next: NextFunction) => {
+  return async (request: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string } }).user;
+      if (!user?.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -231,7 +231,7 @@ export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
         });
       }
 
-      const { deviceId, code } = req.body;
+      const { deviceId, code } = request.body;
 
       if (!deviceId || !code) {
         throw new ValidationError({
@@ -274,10 +274,10 @@ export function complete2FAEnrollment(options: TwoFAMiddlewareOptions) {
  * List user's 2FA devices
  */
 export function list2FADevices(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, _next: NextFunction) => {
+  return async (request: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string } }).user;
+      if (!user?.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -312,10 +312,10 @@ export function list2FADevices(options: TwoFAMiddlewareOptions) {
  * Delete a 2FA device
  */
 export function delete2FADevice(options: TwoFAMiddlewareOptions) {
-  return async (req: Request, res: Response, _next: NextFunction) => {
+  return async (request: Request, res: Response, _next: NextFunction) => {
     try {
-      const user = (req as { user?: { id: string } }).user;
-      if (!user || !user.id) {
+      const user = (request as { user?: { id: string } }).user;
+      if (!user?.id) {
         throw new AuthenticationError({
           code: 'auth/user_not_authenticated',
           message: 'User not authenticated',
@@ -324,7 +324,7 @@ export function delete2FADevice(options: TwoFAMiddlewareOptions) {
         });
       }
 
-      const { deviceId } = req.params;
+      const { deviceId } = request.params;
 
       if (!deviceId) {
         throw new ValidationError({

@@ -1,23 +1,25 @@
 import crypto from 'node:crypto';
-import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
-import { createLogger } from '@kitiumai/logger';
 
-export interface JwksKey {
+import { createLogger } from '@kitiumai/logger';
+import type { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+
+export type JwksKey = {
   kid: string;
   publicKey: string;
   privateKey: string;
   algorithm: 'RS256' | 'ES256';
   createdAt: Date;
   expiresAt?: Date;
-}
+};
 
-export interface KeyRotationPolicy {
+export type KeyRotationPolicy = {
   rotationDays: number;
   overlapSeconds?: number;
   enforceKid?: boolean;
-}
+};
 
-export interface TokenFormat {
+export type TokenFormat = {
   audience: string;
   issuer: string;
   expirationSeconds: number;
@@ -27,24 +29,24 @@ export interface TokenFormat {
     sameSite?: 'lax' | 'strict' | 'none';
     secure?: boolean;
   };
-}
+};
 
-export interface TokenGovernanceConfig {
+export type TokenGovernanceConfig = {
   jwks: JwksKey[];
   rotation: KeyRotationPolicy;
   format: TokenFormat;
-}
+};
 
-export interface TokenIssueResult {
+export type TokenIssueResult = {
   token: string;
   kid: string;
   expiresAt: Date;
-}
+};
 
 const logger = createLogger();
 
 export class TokenGovernance {
-  private config: TokenGovernanceConfig;
+  private readonly config: TokenGovernanceConfig;
 
   constructor(config: TokenGovernanceConfig) {
     if (config.jwks.length === 0) {
